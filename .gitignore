@@ -1,0 +1,6 @@
+# age private keys must never land here; the repo is public.
+*.agekey
+keys.txt
+# sops -d output, if ever written to disk by hand
+*.dec.yaml
+*.decrypted.*

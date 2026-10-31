@@ -1,0 +1,18 @@
+# sops picks the FIRST creation_rule whose path_regex matches the file being
+# encrypted. This repo is public, so a file no rule matches can't be
+# encrypted at all -- that's the safe failure.
+#
+# age recipients:
+#   eminem (this Mac), generated 2026-10-31:
+#     age1wg79n0lgmaaxc767tntfuly7fhhqtujr7pzuafgs9p7k3sh4tecqvccr7u
+#   Flux decrypts with the same private key, loaded into the cluster as the
+#   `sops-age` Secret in flux-system at bootstrap.
+creation_rules:
+  # Only *.sops.yaml files: a `kind: Secret` anywhere else is a plaintext
+  # leak, and that's greppable. Only Secret payloads are encrypted, so names
+  # and kinds stay readable to kustomize, validators and diffs; the MAC
+  # covers just the encrypted values, so hand-editing metadata stays safe.
+  - path_regex: \.sops\.ya?ml$
+    encrypted_regex: ^(data|stringData)$
+    mac_only_encrypted: true
+    age: age1wg79n0lgmaaxc767tntfuly7fhhqtujr7pzuafgs9p7k3sh4tecqvccr7u
