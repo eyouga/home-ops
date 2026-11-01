@@ -1,0 +1,121 @@
+# Jellyfin at the old server's exact image (Phase 5: restore first, upgrade
+# in Phase 6). Config from the rescued jellyfin-config PVC; uid 568 like on
+# TrueNAS. The libraries point at /media/{films,series,music}, the old paths,
+# mounted from tank (storage.yaml). Transcodes and cache are scratch
+# (emptyDir), as before. The RTX 2070 is passed in through the nvidia-cdi
+# runtime; Jellyfin only uses it once NVENC is chosen in its playback
+# settings (the old server transcoded on the CPU).
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: jellyfin
+  namespace: jellyfin
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  # Restore window only: Helm would wait for the config PVC to bind, which
+  # needs a pod. Removed together with replicas: 0.
+  install:
+    disableWait: true
+  values:
+    controllers:
+      jellyfin:
+        # 0 while the config is restored into the empty PVC; then 1.
+        replicas: 0
+        strategy: Recreate
+        pod:
+          runtimeClassName: nvidia-cdi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 568
+            runAsGroup: 568
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: ghcr.io/jellyfin/jellyfin
+              tag: 10.9.3@sha256:3022b48f18c810fe7a6a77ba3aef05bdbc9a05f253e856d2c96916fcdbcfc0f6
+            env:
+              TZ: Europe/Paris
+              JELLYFIN_PublishedServerUrl: https://jellyfin.eyouga.fr
+              # NVENC/NVDEC need the driver's video libraries in the container.
+              NVIDIA_DRIVER_CAPABILITIES: compute,video,utility
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8096
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *probe
+              # The first start after a restore migrates and scans.
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8096
+                  periodSeconds: 10
+                  failureThreshold: 60
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                memory: 8Gi
+                nvidia.com/gpu: 1
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+
+    service:
+      app:
+        controller: jellyfin
+        ports:
+          http:
+            port: 8096
+
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        storageClass: fast
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        retain: true
+        globalMounts:
+          - path: /config
+      transcodes:
+        type: emptyDir
+        globalMounts:
+          - path: /config/transcodes
+      cache:
+        type: emptyDir
+        globalMounts:
+          - path: /cache
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+      # storage.yaml
+      films:
+        existingClaim: films
+        globalMounts:
+          - path: /media/films
+      series:
+        existingClaim: series
+        globalMounts:
+          - path: /media/series
+      music:
+        existingClaim: music
+        globalMounts:
+          - path: /media/music

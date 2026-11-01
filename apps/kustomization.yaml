@@ -9,3 +9,4 @@ resources:
   - radarr
   - lidarr
   - qbittorrent
+  - jellyfin
