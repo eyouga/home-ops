@@ -159,7 +159,20 @@ spec:
         containers:
           app:
             image: *image
-            command: [php, -f, /var/www/html/cron.php]
+            # k3s's NetworkPolicy controller lets a new pod through about a
+            # second after it starts; PHP would connect before that. So
+            # wait (30 s at most) until Postgres answers.
+            command: &waitdb
+              - sh
+              - -c
+              - |
+                i=0
+                until php -r 'exit(@fsockopen("nextcloud-rw.databases.svc", 5432, $e, $s, 1) ? 0 : 1);'; do
+                  i=$((i+1)); [ "$i" -lt 30 ] || { echo "database unreachable" >&2; exit 1; }; sleep 1
+                done
+                exec "$@"
+              - sh
+            args: [php, -f, /var/www/html/cron.php]
             env: *env
             envFrom: *envFrom
             resources:
@@ -183,7 +196,8 @@ spec:
         containers:
           app:
             image: *image
-            command: [php, /var/www/html/occ, preview:pre-generate]
+            command: *waitdb
+            args: [php, /var/www/html/occ, preview:pre-generate]
             env: *env
             envFrom: *envFrom
             resources:
