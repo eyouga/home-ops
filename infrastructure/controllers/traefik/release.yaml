@@ -1,0 +1,50 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: traefik
+      version: 42.2.0
+      sourceRef:
+        kind: HelmRepository
+        name: traefik
+  values:
+    providers:
+      kubernetesGateway:
+        enabled: true
+      # Routes are HTTPRoutes only; no Ingress objects in this cluster.
+      kubernetesIngress:
+        enabled: false
+    # The chart's Gateway, shared by every app's HTTPRoute.
+    gateway:
+      listeners:
+        web:
+          port: 8000
+          protocol: HTTP
+          namespacePolicy:
+            from: All
+        websecure:
+          port: 8443
+          protocol: HTTPS
+          namespacePolicy:
+            from: All
+          mode: Terminate
+          # eyouga.fr + *.eyouga.fr, issued in infrastructure/configs/traefik.
+          certificateRefs:
+            - name: eyouga-fr-tls
+    ports:
+      web:
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
+    service:
+      annotations:
+        # Fixed, so DNS (blocky's customDNS) can point eyouga.fr at it.
+        metallb.io/loadBalancerIPs: 192.168.1.201

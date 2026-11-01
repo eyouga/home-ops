@@ -1,0 +1,14 @@
+# One certificate for everything behind the Gateway (its websecure listener).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: eyouga-fr
+  namespace: traefik
+spec:
+  secretName: eyouga-fr-tls
+  dnsNames:
+    - eyouga.fr
+    - "*.eyouga.fr"
+  issuerRef:
+    kind: ClusterIssuer
+    name: cert

@@ -1,0 +1,15 @@
+# Every PVC is a plain directory at /var/lib/k8s-volumes/<namespace>/<pvc>
+# (dataset fast/k8s, set by k3s's --default-local-storage-path). Predictable
+# paths: rescued data is restored by copying it there, and a rebuilt cluster
+# re-attaches to the same directory when the PVC is recreated, which is also
+# why deleting a PVC keeps its data (Retain).
+# k3s's own `local-path` class stays the default; charts name `fast`.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast
+provisioner: rancher.io/local-path
+parameters:
+  pathPattern: "{{ .PVC.Namespace }}/{{ .PVC.Name }}"
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer

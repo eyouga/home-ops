@@ -1,0 +1,25 @@
+# Zone -> DNS -> Edit on eyouga.fr only. Edit with: sops edit <this file>
+apiVersion: v1
+kind: Secret
+metadata:
+    name: cloudflare-api-token
+    namespace: cert-manager
+type: Opaque
+stringData:
+    api-token: ENC[AES256_GCM,data:rpBdxEDPXgEm7Q==,iv:APt2uGh4akjM+gejtgWtD0lFcbPMe8nV6uWtU9/6R+Y=,tag:mttNiaFAEtslVD1lD6UVog==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBtaFV5bjZLMnRVQmRMTFpB
+            U1F2aEVJb1VKL24zRHVaY0p3SGY4a2xzRndNCnNVQmppTitwWVZZNkNNVmxEQUVR
+            NVEwT1l4ZG9FdjBBcTBYUVROSGdIYlUKLS0tIGhxL0JtdFFyaTJncGgwRXpKZm81
+            MFlNYThHcnFLQjkwaFNVUzIzVVJuRkEKuH/GPeprIzVjgZRTu+1ISOaPl+7JAxEH
+            yRb5peR25BBv0mTYrz0ROdcoGr0zEFEi0bkWEx7APN2JhSmNJvAt/Q==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1wg79n0lgmaaxc767tntfuly7fhhqtujr7pzuafgs9p7k3sh4tecqvccr7u
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-11-01T13:40:59Z"
+    mac: ENC[AES256_GCM,data:GlxTebjakhAreVg+/4hByByxlvxZGSOtjKvBGIh/imTwfQjlCfX0gPDoQr9xt8TWUYqrN5+RofuypfqL5Qysu2lgHwHGAbfMuexZZQ7GKluf91EvjgPACEbP6R3BA5vMVFg66jt7mQZHxl36bnNnnbwiFFEuN3GNlWhbaGlyS88=,iv:kOukyYlP/GzEQpsQOEIsdk4DrjuIp6KIYX1/e5Dx05Q=,tag:oO6iDmD69rcXf+nQpFrXww==,type:str]
+    mac_only_encrypted: true
+    version: 3.13.3
