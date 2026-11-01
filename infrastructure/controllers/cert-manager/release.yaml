@@ -21,3 +21,6 @@ spec:
     # answer eyouga.fr locally (split horizon) and never sees the TXT record.
     dns01RecursiveNameservers: 1.1.1.1:53,9.9.9.9:53
     dns01RecursiveNameserversOnly: true
+    prometheus:
+      servicemonitor:
+        enabled: true

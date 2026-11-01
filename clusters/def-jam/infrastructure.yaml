@@ -1,7 +1,8 @@
-# Three layers. crds/ first: Traefik's chart creates a Gateway, so the
-# Gateway API CRDs must exist before it installs. configs/ last: it creates
-# objects (IPAddressPool, ClusterIssuer, Certificate) whose CRDs only exist
-# once controllers/ is ready.
+# Three layers. CRDs first: Traefik's chart creates a Gateway, so the
+# Gateway API CRDs must exist before it installs, and the controllers ship
+# ServiceMonitors, so the Prometheus Operator's CRDs must too. configs/ last:
+# it creates objects (IPAddressPool, ClusterIssuer, Certificate) whose CRDs
+# only exist once controllers/ is ready.
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
@@ -34,6 +35,38 @@ spec:
   prune: false
   wait: true
 ---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: prometheus-operator
+  namespace: flux-system
+spec:
+  interval: 24h
+  url: https://github.com/prometheus-operator/prometheus-operator
+  # The operator version monitoring/'s kube-prometheus-stack runs (92.17.0:
+  # v0.94.2). Bump both together.
+  ref:
+    tag: v0.94.2
+  ignore: |
+    /*
+    !/example/prometheus-operator-crd/
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infra-crds-prometheus
+  namespace: flux-system
+spec:
+  interval: 1h
+  retryInterval: 1m
+  timeout: 5m
+  sourceRef:
+    kind: GitRepository
+    name: prometheus-operator
+  path: ./example/prometheus-operator-crd
+  prune: false
+  wait: true
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -42,6 +75,7 @@ metadata:
 spec:
   dependsOn:
     - name: infra-crds
+    - name: infra-crds-prometheus
   interval: 1h
   retryInterval: 1m
   timeout: 5m

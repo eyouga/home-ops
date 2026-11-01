@@ -44,6 +44,12 @@ spec:
               to: websecure
               scheme: https
               permanent: true
+    metrics:
+      prometheus:
+        service:
+          enabled: true
+        serviceMonitor:
+          enabled: true
     service:
       annotations:
         # Fixed, so DNS (blocky's customDNS) can point eyouga.fr at it.
