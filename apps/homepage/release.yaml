@@ -1,0 +1,90 @@
+# homepage v0.8.13, the old server's exact image (Phase 5: restore first,
+# upgrade in Phase 6). /app/config is the rescued homepage-config PVC: it
+# was never set up, so it still holds the image's sample files (Dec 2023).
+# uid 568 and a read-only root, as on TrueNAS.
+#
+# Left out on purpose: the old chart's `kubernetes.yaml: mode: cluster`
+# (a ConfigMap over the PVC's sample) and its cluster-wide read access to
+# pods, nodes and ingresses. Nothing in the config used them (no kubernetes
+# widget, and homepage 0.8 discovers Ingresses, not HTTPRoutes), so the
+# restored sample (no mode = disabled) applies, and the pod gets no API
+# token.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: homepage
+  namespace: homepage
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  # Restore window only: Helm would wait for the config PVC to bind, which
+  # needs a pod. Removed together with replicas: 0.
+  install:
+    disableWait: true
+  values:
+    controllers:
+      homepage:
+        # 0 while /app/config is restored; then 1.
+        replicas: 0
+        strategy: Recreate
+        pod:
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 568
+            runAsGroup: 568
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: ghcr.io/gethomepage/homepage
+              tag: v0.8.13@sha256:43a3ee88abe3b37c64bc52ea93da01c3dcb4a332a953bcd7f438c8d7328d3947
+            env:
+              TZ: Europe/Paris
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/healthcheck
+                    port: 3000
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *probe
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+
+    service:
+      app:
+        controller: homepage
+        ports:
+          http:
+            port: 3000
+
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        storageClass: fast
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        retain: true
+        globalMounts:
+          - path: /app/config
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

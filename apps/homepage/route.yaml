@@ -1,0 +1,18 @@
+# The apex, eyouga.fr, as on the old server (the wildcard certificate covers
+# it, and the websecure listener takes any host). LAN only until Phase 8
+# (public DNS doesn't point here; blocky does).
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: homepage
+  namespace: homepage
+spec:
+  parentRefs:
+    - name: traefik-gateway
+      namespace: traefik
+      sectionName: websecure
+  hostnames: [eyouga.fr]
+  rules:
+    - backendRefs:
+        - name: homepage
+          port: 3000

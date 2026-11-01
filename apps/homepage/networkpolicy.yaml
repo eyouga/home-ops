@@ -1,0 +1,48 @@
+# Default deny, then: the page through Traefik; homepage to kube-dns and
+# HTTPS on the internet (its footer's release check asks GitHub's API,
+# server-side). Its config has no service widgets yet, so it calls no app;
+# each widget added later needs its own egress rule here (and an ingress
+# rule on that app's side).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: homepage
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: homepage
+  namespace: homepage
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: homepage
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - { port: 3000, protocol: TCP }
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { port: 53, protocol: UDP }
+        - { port: 53, protocol: TCP }
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]
+      ports:
+        - { port: 443, protocol: TCP }
