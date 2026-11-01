@@ -1,0 +1,92 @@
+# Sonarr at the old server's exact image (Phase 5: restore first, upgrade in
+# Phase 6). Config from the rescued /mnt/Bim/apps/sonarr/config; uid 568
+# like on TrueNAS, so the restored files need no chown. Paths inside the
+# container match the old ones (/media/series, /torrents), so the database's
+# root folder and qBittorrent's save paths still hold.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: sonarr
+  namespace: sonarr
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  # Restore window only: Helm would wait for the config PVC to bind, which
+  # needs a pod. Removed together with replicas: 0.
+  install:
+    disableWait: true
+  values:
+    controllers:
+      sonarr:
+        # 0 while the config is restored into the empty PVC; then 1.
+        replicas: 0
+        strategy: Recreate
+        pod:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 568
+            runAsGroup: 568
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: ghcr.io/onedr0p/sonarr
+              tag: 4.0.4.1491@sha256:b513d3836c5b86d3e5c2eb7cb4908e0002856d922b0a360f136781aaa89ef38a
+            env:
+              TZ: Europe/Paris
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: 8989
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *probe
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+
+    service:
+      app:
+        controller: sonarr
+        ports:
+          http:
+            port: 8989
+
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        storageClass: fast
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        retain: true
+        globalMounts:
+          - path: /config
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+      # storage.yaml
+      series:
+        existingClaim: series
+        globalMounts:
+          - path: /media/series
+      torrents:
+        existingClaim: torrents
+        globalMounts:
+          - path: /torrents

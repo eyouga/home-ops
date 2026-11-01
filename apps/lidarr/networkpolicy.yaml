@@ -1,0 +1,67 @@
+# Default deny, then the real paths: UI, Prowlarr's app sync, qBittorrent,
+# Prowlarr's indexers, the internet.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: lidarr
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: lidarr
+  namespace: lidarr
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: lidarr
+  policyTypes: [Ingress, Egress]
+  ingress:
+    # Web UI.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - { port: 8686, protocol: TCP }
+    # Prowlarr pushes indexers (app sync).
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: prowlarr
+      ports:
+        - { port: 8686, protocol: TCP }
+  egress:
+    # kube-dns, for the names below and the internet.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { port: 53, protocol: UDP }
+        - { port: 53, protocol: TCP }
+    # Download client.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: qbittorrent
+      ports:
+        - { port: 10095, protocol: TCP }
+    # Indexers, served by Prowlarr (Torznab).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: prowlarr
+      ports:
+        - { port: 9696, protocol: TCP }
+    # Metadata, updates checks, indexers not behind Prowlarr.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]

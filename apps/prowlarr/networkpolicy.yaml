@@ -1,0 +1,94 @@
+# Default deny, then the real paths: UI, the *arrs fetching indexers, and
+# Prowlarr syncing to them, solving via FlareSolverr, grabbing to qBittorrent.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: prowlarr
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: prowlarr
+  namespace: prowlarr
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: prowlarr
+  policyTypes: [Ingress, Egress]
+  ingress:
+    # Web UI.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - { port: 9696, protocol: TCP }
+    # The *arrs query indexers through Prowlarr (Torznab).
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: sonarr
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: radarr
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: lidarr
+      ports:
+        - { port: 9696, protocol: TCP }
+  egress:
+    # kube-dns, for the names below and the internet.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { port: 53, protocol: UDP }
+        - { port: 53, protocol: TCP }
+    # App sync.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: sonarr
+      ports:
+        - { port: 8989, protocol: TCP }
+    # App sync.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: radarr
+      ports:
+        - { port: 7878, protocol: TCP }
+    # App sync.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: lidarr
+      ports:
+        - { port: 8686, protocol: TCP }
+    # Indexer proxy for Cloudflare-protected sites.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: flaresolverr
+      ports:
+        - { port: 8191, protocol: TCP }
+    # Manual grabs from Prowlarr's search.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: qbittorrent
+      ports:
+        - { port: 10095, protocol: TCP }
+    # The indexers themselves.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]

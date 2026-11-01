@@ -1,0 +1,66 @@
+# Bulk data on tank, mounted from the host (datasets in the dotfiles'
+# zfs.nix). Static PVs, so the pods stay on Pod Security `restricted` (a
+# hostPath in the pod spec would not). type: Directory: until tank is
+# imported the path is missing, so the pod waits instead of writing into
+# the wiped root. Retain: deleting these never touches the files. The
+# capacity is a label; nothing enforces it.
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sonarr-series
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: sonarr
+    name: series
+  hostPath:
+    path: /srv/media/series
+    type: Directory
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: series
+  namespace: sonarr
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: ""
+  volumeName: sonarr-series
+  resources:
+    requests:
+      storage: 1Ti
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sonarr-torrents
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: sonarr
+    name: torrents
+  hostPath:
+    path: /srv/torrents
+    type: Directory
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: torrents
+  namespace: sonarr
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: ""
+  volumeName: sonarr-torrents
+  resources:
+    requests:
+      storage: 1Ti

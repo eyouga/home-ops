@@ -1,0 +1,83 @@
+# FlareSolverr: Prowlarr's proxy for Cloudflare-protected indexers.
+# Stateless, so it runs the current release from day one (Phase 5's
+# old-version rule only matters for apps with data). No route: only
+# Prowlarr calls it.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: flaresolverr
+  namespace: flaresolverr
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      flaresolverr:
+        strategy: Recreate
+        pod:
+          securityContext:
+            # The image's `flaresolverr` user (first useradd in its Debian base).
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: ghcr.io/flaresolverr/flaresolverr
+              tag: v3.5.2@sha256:c80ae007ce2ccdcd217a12426e4f039ef763ff90738c808d38810c3e59323767
+            env:
+              TZ: Europe/Paris
+              LOG_LEVEL: info
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8191
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *probe
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              # Each solve runs a headless Chromium.
+              limits:
+                memory: 2Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+
+    service:
+      app:
+        controller: flaresolverr
+        ports:
+          http:
+            port: 8191
+
+    persistence:
+      # Chromium's profile and scratch space; the rest of the root is
+      # read-only.
+      chromium:
+        type: emptyDir
+        globalMounts:
+          - path: /app/.config
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+      shm:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 1Gi
+        globalMounts:
+          - path: /dev/shm
