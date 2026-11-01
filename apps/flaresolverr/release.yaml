@@ -65,12 +65,20 @@ spec:
             port: 8191
 
     persistence:
-      # Chromium's profile and scratch space; the rest of the root is
-      # read-only.
-      chromium:
+      # Chromium's profile, undetected-chromedriver's patched driver
+      # ($HOME/.local), caches and scratch space; the rest of the root is
+      # read-only. $HOME is /app.
+      home:
         type: emptyDir
-        globalMounts:
-          - path: /app/.config
+        advancedMounts:
+          flaresolverr:
+            app:
+              - path: /app/.config
+                subPath: config
+              - path: /app/.local
+                subPath: local
+              - path: /app/.cache
+                subPath: cache
       tmp:
         type: emptyDir
         globalMounts:
