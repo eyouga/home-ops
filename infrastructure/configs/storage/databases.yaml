@@ -1,0 +1,6 @@
+# Every CNPG cluster lives here, so the `fast` class puts its volumes on
+# fast/k8s-db (16K records), mounted at /var/lib/k8s-volumes/databases.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: databases
