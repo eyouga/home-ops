@@ -1,5 +1,5 @@
 # Default deny, then the real paths: UI, the *arrs fetching indexers, and
-# Prowlarr syncing to them, solving via FlareSolverr, grabbing to qBittorrent.
+# Prowlarr syncing to them, solving via FlareSolverr, grabbing to Transmission.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -81,12 +81,6 @@ spec:
       ports:
         - { port: 8191, protocol: TCP }
     # Manual grabs from Prowlarr's search.
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: qbittorrent
-      ports:
-        - { port: 10095, protocol: TCP }
     - to:
         - namespaceSelector:
             matchLabels:

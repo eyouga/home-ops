@@ -1,4 +1,4 @@
-# Default deny, then the real paths: UI, Prowlarr's app sync, qBittorrent,
+# Default deny, then the real paths: UI, Prowlarr's app sync, Transmission,
 # Prowlarr's indexers, the internet.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -47,12 +47,6 @@ spec:
         - { port: 53, protocol: UDP }
         - { port: 53, protocol: TCP }
     # Download client.
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: qbittorrent
-      ports:
-        - { port: 10095, protocol: TCP }
     - to:
         - namespaceSelector:
             matchLabels:

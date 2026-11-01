@@ -9,7 +9,6 @@ resources:
   - sonarr
   - radarr
   - lidarr
-  - qbittorrent
   - transmission
   - jellyfin
   - gitea

@@ -5,7 +5,7 @@
 # Config from the rescued /mnt/Bim/apps/sonarr/config; uid 568
 # like on TrueNAS, so the restored files need no chown. Paths inside the
 # container match the old ones (/media/series, /torrents), so the database's
-# root folder and qBittorrent's save paths still hold.
+# root folder and the download client's save paths still hold.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:

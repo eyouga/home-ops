@@ -1,5 +1,5 @@
 # Default deny, then: the UI (and the companion app) through Traefik; Home
-# Assistant to its Postgres, kube-dns, qBittorrent's API, Jellyfin's URL via
+# Assistant to its Postgres, kube-dns, Transmission's RPC, Jellyfin's URL via
 # Traefik, and the internet (weather, radio browser, Google TTS, the
 # companion app's push relay). No host network: nothing it uses talks to LAN
 # devices, and the old pod had none either (its DHCP watcher already failed).
@@ -52,17 +52,7 @@ spec:
               cnpg.io/cluster: home-assistant
       ports:
         - { port: 5432, protocol: TCP }
-    # The qBittorrent integration.
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: qbittorrent
-          podSelector:
-            matchLabels:
-              app.kubernetes.io/name: qbittorrent
-      ports:
-        - { port: 10095, protocol: TCP }
-    # The Transmission integration (replaces qBittorrent's).
+    # The Transmission integration (replaced qBittorrent's in Phase 6).
     - to:
         - namespaceSelector:
             matchLabels:
