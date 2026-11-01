@@ -1,0 +1,69 @@
+# blocky's whole config. Served to the cluster's blocky as a ConfigMap
+# (kustomization.yaml) and fetched from GitHub raw by the second blocky on
+# the Freebox. Both answer the LAN in no set order, so this file must work
+# on both: no cluster-only names (*.svc.cluster.local), upstreams and
+# bootstrap as IP literals, no secrets (the repo is public).
+ports:
+  # Unprivileged ports; the cluster's Service maps 53 onto them.
+  dns: 5353
+  http: 4000
+connectIPVersion: v4
+upstreams:
+  strategy: parallel_best
+  timeout: 2s
+  groups:
+    default:
+      - https://1.1.1.1/dns-query
+      - https://1.0.0.1/dns-query
+      - https://9.9.9.9/dns-query
+      - https://149.112.112.112/dns-query
+# Resolves the blocklist hosts. An IP literal, so blocky never depends on
+# another resolver (or on itself) to start.
+bootstrapDns:
+  - https://1.1.1.1/dns-query
+# eyouga.fr and every subdomain → Traefik, on the LAN only (replaces the old
+# k8s_gateway). Other record types for these names come back empty
+# (filterUnmappedTypes): no AAAA, so IPv6 clients can't prefer Cloudflare's
+# public addresses over Traefik; no MX/TXT (Proton Mail), which nothing on
+# the LAN looks up — mail clients talk to Proton directly. Public DNS at
+# Cloudflare is untouched. Short TTL, so moving Traefik's IP takes effect
+# within minutes.
+customDNS:
+  customTTL: 5m
+  filterUnmappedTypes: true
+  mapping:
+    eyouga.fr: 192.168.1.201
+blocking:
+  denylists:
+    # The old server's lists, all still served (checked 2026-11-01).
+    ads:
+      - https://raw.githubusercontent.com/PolishFiltersTeam/KADhosts/master/KADhosts.txt
+      - https://raw.githubusercontent.com/FadeMind/hosts.extras/master/add.Spam/hosts
+      - https://v.firebog.net/hosts/static/w3kbl.txt
+      - https://adaway.org/hosts.txt
+      - https://v.firebog.net/hosts/AdguardDNS.txt
+      - https://v.firebog.net/hosts/Admiral.txt
+      - https://raw.githubusercontent.com/anudeepND/blacklist/master/adservers.txt
+      - https://raw.githubusercontent.com/chadmayfield/my-pihole-blocklists/master/lists/pi_blocklist_porn_top1m.list
+  clientGroupsBlock:
+    default: [ads]
+  blockType: nxDomain
+  blockTTL: 6h
+  loading:
+    refreshPeriod: 4h
+    # The default timeout cuts off AdguardDNS.txt (4 MB) mid-download.
+    downloads:
+      timeout: 60s
+      attempts: 3
+      cooldown: 2s
+    # Answer at once and block as soon as the lists are in: a restart must
+    # not take DNS away from the LAN.
+    strategy: fast
+caching:
+  minTime: 5m
+  maxTime: 30m
+  prefetching: true
+prometheus:
+  enable: true
+log:
+  level: info

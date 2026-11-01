@@ -1,0 +1,40 @@
+# Default deny, then only what blocky does: answer DNS from anywhere on the
+# LAN, be scraped by Prometheus, and reach its DoH upstreams and blocklist
+# hosts on 443. Every upstream and the bootstrap resolver are IP literals,
+# so it never needs kube-dns.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: blocky
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: blocky
+  namespace: blocky
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: blocky
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - ports:
+        - { port: 5353, protocol: UDP }
+        - { port: 5353, protocol: TCP }
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - { port: 4000, protocol: TCP }
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]
+      ports:
+        - { port: 443, protocol: TCP }
