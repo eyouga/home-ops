@@ -4,7 +4,7 @@ metadata:
     name: alertmanager-ntfy
     namespace: monitoring
 stringData:
-    url: ENC[AES256_GCM,data:Q3YO7EpOk1TRZuabyRtbONH4Dw5yiJeI/XmLBXuF9IHzt3ZB9N6m5rr4DfYOv1iNpZE=,iv:t6LMyGNJKdfxpnrRj9byhGSrddcfYGWpHqG4g4Ov9ZU=,tag:2MEQnJWSYlV3HYuC7nwCCw==,type:str]
+    url: ENC[AES256_GCM,data:lUCWXfPjZS+dr+ZrJQpNzDU5hQ7alQydbeZ7cgpGuCx56jpuVXnGF3pdb61E4LPpQs6p/EFx1zs5Wa6qErkbBYyqZSPY7A==,iv:bdAuSuwyb/xie8XfRz/eJgF7hlH2LW5j20J8I1jNbak=,tag:On0UXuhDK6K7q44KbmPsnA==,type:str]
 sops:
     age:
         - enc: |
@@ -17,7 +17,7 @@ sops:
             -----END AGE ENCRYPTED FILE-----
           recipient: age1wg79n0lgmaaxc767tntfuly7fhhqtujr7pzuafgs9p7k3sh4tecqvccr7u
     encrypted_regex: ^(data|stringData)$
-    lastmodified: "2026-11-01T15:18:19Z"
-    mac: ENC[AES256_GCM,data:KyGjq4Al+Tj7zXNt1LDlhPArQ2dFJfojz9Nuv9lisDYBF5+edgij3Up9OhhJJh79apCrGrzf0fCLOrrTV2T6W3L1bdZfj7BF8MIQyy22lSvyoC0GSgAGPHss26WaWij36OOI0sEznkWlH9HgsoWt1c25/AUuhHYwLM4irxZMOTk=,iv:Dw9bsF3nRvGHr8dOuyToNRQOcQgYIlpHwDdilFjc+PM=,tag:Tp8y6l1uWkmrHYQuOD4cUw==,type:str]
+    lastmodified: "2026-11-01T15:33:05Z"
+    mac: ENC[AES256_GCM,data:WRVp9+PD/ec+m3h7pDW009/PZN2/AVlhNQZ7ewqsAChKINMI+7Rrmsh8nsWmP3ufI8TkLYBk3Iu5Cwzao3of/hsVU9zOtes8E3kpgIrfCGvJJx+X2yGnWHSmUhxHx8ffALHAluC8YEHVd+KnBF+Wn2arvc+EnqGbLWS9m8r7Ayg=,iv:Yy026WQjNU1/CNRZTy1RTq1Nf2xw0Nr40ZwI0LU5C70=,tag:H+HwLKo0Y6SaMizp6INcMA==,type:str]
     mac_only_encrypted: true
     version: 3.13.3
