@@ -3,8 +3,8 @@
 # TrueNAS. The libraries point at /media/{films,series,music}, the old paths,
 # mounted from tank (storage.yaml). Transcodes and cache are scratch
 # (emptyDir), as before. The RTX 2070 is passed in through the nvidia-cdi
-# runtime; Jellyfin only uses it once NVENC is chosen in its playback
-# settings (the old server transcoded on the CPU).
+# runtime; NVENC + NVDEC are set in Jellyfin's playback settings (the old
+# server transcoded on the CPU; switched 2026-11-01).
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -20,6 +20,9 @@ spec:
       jellyfin:
         strategy: Recreate
         pod:
+          # Jellyfin's server name defaults to the hostname; a fixed one
+          # keeps it from changing with every pod.
+          hostname: jellyfin
           runtimeClassName: nvidia-cdi
           securityContext:
             runAsNonRoot: true
