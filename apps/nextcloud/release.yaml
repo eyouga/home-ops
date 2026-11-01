@@ -29,6 +29,12 @@ spec:
       nextcloud:
         strategy: Recreate
         pod:
+          # Nextcloud calls its own URL (notify_push's self-test, the admin
+          # setup checks). Inside the cluster that name would go to public
+          # DNS; this sends it to Traefik, as blocky does on the LAN.
+          hostAliases: &hostAliases
+            - ip: 192.168.1.201
+              hostnames: [nextcloud.eyouga.fr]
           securityContext: &podsec
             runAsNonRoot: true
             runAsUser: 568
@@ -150,6 +156,7 @@ spec:
           failedJobsHistory: 3
           backoffLimit: 0
         pod:
+          hostAliases: *hostAliases
           securityContext: *podsec
         containers:
           app:

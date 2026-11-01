@@ -1,6 +1,7 @@
 # Default deny, then: the web UI, WebDAV and notify_push through Traefik;
-# Nextcloud's pods (the server and both CronJobs) to Postgres, Valkey,
-# kube-dns and the internet (app store, Proton's SMTP, federation, weather);
+# Nextcloud's pods (the server and both CronJobs) to Postgres, Valkey, their
+# own URL via Traefik, kube-dns and the internet (app store, Proton's SMTP,
+# federation, weather);
 # Valkey reachable from those pods only.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -53,6 +54,14 @@ spec:
               cnpg.io/cluster: nextcloud
       ports:
         - { port: 5432, protocol: TCP }
+    # Its own URL through Traefik (release.yaml's hostAliases): traffic to
+    # the LoadBalancer IP reaches Traefik's pods on 8443.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - { port: 8443, protocol: TCP }
     # Valkey.
     - to:
         - podSelector:
