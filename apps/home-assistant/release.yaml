@@ -1,0 +1,122 @@
+# Home Assistant 2024.5.5, the old server's exact image (Phase 5: restore
+# first, upgrade in Phase 6). /config is the rescued home-assistant-config
+# PVC; the recorder's history is in Postgres (database.yaml).
+#
+# The old pod ran the image's s6-overlay init as root (PUID 568 there is a
+# linuxserver convention this image ignores). Here it runs as 568 with a
+# read-only root: the command is what s6's home-assistant service ran
+# (`python3 -m homeassistant --config /config` from /config, jemalloc
+# preloaded), without s6, which needs root. Tested on an empty /config first:
+# it starts clean, and installs nothing (every integration in use ships its
+# requirements in the image; anything else would land in /config/deps).
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: home-assistant
+  namespace: home-assistant
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  # Restore window only: Helm would wait for the config PVC to bind, which
+  # needs a pod. Removed together with replicas: 0.
+  install:
+    disableWait: true
+  values:
+    controllers:
+      home-assistant:
+        # 0 while /config and the database are restored; then 1.
+        replicas: 0
+        strategy: Recreate
+        pod:
+          # The Jellyfin integration calls https://jellyfin.eyouga.fr. Inside
+          # the cluster that name would go to public DNS; this sends it to
+          # Traefik, as blocky does on the LAN.
+          hostAliases:
+            - ip: 192.168.1.201
+              hostnames: [jellyfin.eyouga.fr]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 568
+            runAsGroup: 568
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: homeassistant/home-assistant
+              tag: 2024.5.5@sha256:031d355a2e52e82fc33cd6854753fb19fc5d6a31af6f0f54c277d6f118ad993e
+            workingDir: /config
+            command: [python3, -m, homeassistant, --config, /config]
+            env:
+              TZ: Europe/Paris
+              # As the image's s6 run script sets them.
+              LD_PRELOAD: /usr/local/lib/libjemalloc.so.2
+              MALLOC_CONF: background_thread:true,metadata_thp:auto,dirty_decay_ms:20000,muzzy_decay_ms:20000
+            envFrom:
+              # HA_RECORDER_DB_URL, read by configuration.yaml's !env_var.
+              - secretRef:
+                  name: home-assistant-db
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /manifest.json
+                    port: 8123
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *probe
+              # Recorder schema migrations run at start (Phase 6).
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /manifest.json
+                    port: 8123
+                  periodSeconds: 10
+                  failureThreshold: 60
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 2Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+
+    service:
+      app:
+        controller: home-assistant
+        ports:
+          http:
+            port: 8123
+
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        storageClass: fast
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        retain: true
+        globalMounts:
+          - path: /config
+      # config/configuration.yaml (kustomization.yaml's configMapGenerator).
+      files:
+        type: configMap
+        name: home-assistant-files
+        globalMounts:
+          - path: /config/configuration.yaml
+            subPath: configuration.yaml
+            readOnly: true
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

@@ -1,0 +1,78 @@
+# Default deny, then: the UI (and the companion app) through Traefik; Home
+# Assistant to its Postgres, kube-dns, qBittorrent's API, Jellyfin's URL via
+# Traefik, and the internet (weather, radio browser, Google TTS, the
+# companion app's push relay). No host network: nothing it uses talks to LAN
+# devices, and the old pod had none either (its DHCP watcher already failed).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: home-assistant
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: home-assistant
+  namespace: home-assistant
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: home-assistant
+  policyTypes: [Ingress, Egress]
+  ingress:
+    # Web UI, API and websocket.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - { port: 8123, protocol: TCP }
+  egress:
+    # kube-dns, for the names below and the internet.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { port: 53, protocol: UDP }
+        - { port: 53, protocol: TCP }
+    # Its CNPG cluster (database.yaml): the recorder.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: databases
+          podSelector:
+            matchLabels:
+              cnpg.io/cluster: home-assistant
+      ports:
+        - { port: 5432, protocol: TCP }
+    # The qBittorrent integration.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: qbittorrent
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: qbittorrent
+      ports:
+        - { port: 10095, protocol: TCP }
+    # The Jellyfin integration uses https://jellyfin.eyouga.fr
+    # (release.yaml's hostAliases): traffic to the LoadBalancer IP reaches
+    # Traefik's pods on 8443.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - { port: 8443, protocol: TCP }
+    # Weather, radio browser, TTS, push notifications.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]

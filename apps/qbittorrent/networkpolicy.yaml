@@ -1,4 +1,5 @@
-# Default deny, then: UI, the *arrs and Prowlarr as clients, peers in and out.
+# Default deny, then: UI, the *arrs, Prowlarr and Home Assistant as clients,
+# peers in and out.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -40,6 +41,10 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: prowlarr
+        # Home Assistant's qBittorrent integration (sensors, pause/resume).
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: home-assistant
       ports:
         - { port: 10095, protocol: TCP }
     # Incoming peers, from anywhere.
