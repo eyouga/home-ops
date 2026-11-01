@@ -53,7 +53,10 @@ spec:
                 memory: 2Gi
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
+              # undetected-chromedriver patches its driver into /app at
+              # startup (and $HOME/.local, .config); which paths changes
+              # between releases. Stateless, so a writable root costs nothing.
+              readOnlyRootFilesystem: false
               capabilities:
                 drop: [ALL]
 
@@ -65,24 +68,6 @@ spec:
             port: 8191
 
     persistence:
-      # Chromium's profile, undetected-chromedriver's patched driver
-      # ($HOME/.local), caches and scratch space; the rest of the root is
-      # read-only. $HOME is /app.
-      home:
-        type: emptyDir
-        advancedMounts:
-          flaresolverr:
-            app:
-              - path: /app/.config
-                subPath: config
-              - path: /app/.local
-                subPath: local
-              - path: /app/.cache
-                subPath: cache
-      tmp:
-        type: emptyDir
-        globalMounts:
-          - path: /tmp
       shm:
         type: emptyDir
         medium: Memory
