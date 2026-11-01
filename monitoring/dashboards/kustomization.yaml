@@ -1,0 +1,17 @@
+# Dashboards for the exporters the chart doesn't cover, vendored by
+# ./vendor.sh (sources and pinned revisions there). Grafana's sidecar loads
+# every ConfigMap labelled grafana_dashboard=1.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    grafana_dashboard: "1"
+configMapGenerator:
+  - name: dashboard-zfs
+    files: [zfs.json]
+  - name: dashboard-smartctl
+    files: [smartctl.json]
+  - name: dashboard-dcgm
+    files: [dcgm.json]

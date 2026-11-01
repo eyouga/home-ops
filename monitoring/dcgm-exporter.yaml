@@ -32,3 +32,9 @@ spec:
         value: all
     serviceMonitor:
       enabled: true
+      # instance = <host IP>:<port>, as for smartctl-exporter.
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_host_ip, __address__]
+          regex: '(.+);.+:(\d+)'
+          replacement: '${1}:${2}'
+          targetLabel: instance
