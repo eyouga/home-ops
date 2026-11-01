@@ -6,7 +6,7 @@ metadata:
     namespace: cert-manager
 type: Opaque
 stringData:
-    api-token: ENC[AES256_GCM,data:rpBdxEDPXgEm7Q==,iv:APt2uGh4akjM+gejtgWtD0lFcbPMe8nV6uWtU9/6R+Y=,tag:mttNiaFAEtslVD1lD6UVog==,type:str]
+    api-token: ENC[AES256_GCM,data:Ul2odcFMa2zvgt7gg+/Y+a/KSSQ6aInel8FeVMRw8iwzP6SdlBoSeJLKHT5onBphs+1DcwQ=,iv:tY4UczsodELSscWnetm0fDAsQg/Yjw5WOga7vDAgGsQ=,tag:FVfduFXfCHMN6jV4AFvf0A==,type:str]
 sops:
     age:
         - enc: |
@@ -19,7 +19,7 @@ sops:
             -----END AGE ENCRYPTED FILE-----
           recipient: age1wg79n0lgmaaxc767tntfuly7fhhqtujr7pzuafgs9p7k3sh4tecqvccr7u
     encrypted_regex: ^(data|stringData)$
-    lastmodified: "2026-11-01T13:40:59Z"
-    mac: ENC[AES256_GCM,data:GlxTebjakhAreVg+/4hByByxlvxZGSOtjKvBGIh/imTwfQjlCfX0gPDoQr9xt8TWUYqrN5+RofuypfqL5Qysu2lgHwHGAbfMuexZZQ7GKluf91EvjgPACEbP6R3BA5vMVFg66jt7mQZHxl36bnNnnbwiFFEuN3GNlWhbaGlyS88=,iv:kOukyYlP/GzEQpsQOEIsdk4DrjuIp6KIYX1/e5Dx05Q=,tag:oO6iDmD69rcXf+nQpFrXww==,type:str]
+    lastmodified: "2026-11-01T13:51:22Z"
+    mac: ENC[AES256_GCM,data:G0prTtoyHRjdixBFswgh75eL9Ba50U2hrsAae8wtfnLj7vw01azC0S/+KfgyYfYE7WyqTV9LBmloO9pnMLqZ1Ut+NWQPFgKDl3Jf71EJgDanKK8TEdUwLwM9UCI3JgurMZxHYgloogp4T3Ru1Gbgsq3LDm2napVMix1md9QCzYg=,iv:VbRNqkW1QyUVF5GzGdYikC7z8qakHhu2r0ESsrVVR6w=,tag:o1PgJYJMsKHnAbvRzFQzEg==,type:str]
     mac_only_encrypted: true
     version: 3.13.3
