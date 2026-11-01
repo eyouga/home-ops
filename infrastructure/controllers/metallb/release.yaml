@@ -22,6 +22,9 @@ spec:
     # allows GET /metrics. Rules: pool usage/exhaustion, stale or unloaded
     # config (BGP session rule too, inert in L2 mode).
     prometheus:
+      # Its Role would let Prometheus list pods/endpoints here, which
+      # kube-prometheus-stack's ClusterRole already does.
+      rbacPrometheus: false
       serviceMonitor:
         enabled: true
       prometheusRule:
