@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - networkpolicy.yaml
+  - repository.yaml
+  # The `nextcloud` role's password, twice: for CNPG in `databases`, for
+  # the app in `nextcloud` (with Valkey's password). Same value in both.
+  - db-credentials.sops.yaml
+  - credentials.sops.yaml
+  - database.yaml
+  - storage.yaml
+  - release.yaml
+  - route.yaml
+# Hashed name, so editing a file in config/ upgrades the HelmRelease and
+# rolls the pods; kustomizeconfig.yaml carries the hash into it.
+configMapGenerator:
+  - name: nextcloud-files
+    namespace: nextcloud
+    files:
+      - config/nginx.conf
+      - config/zz-k8s.config.php
+      - config/redis-session.ini
+      - config/opcache-recommended.ini
+      - config/zz-tune.conf
+configurations:
+  - kustomizeconfig.yaml

@@ -1,0 +1,88 @@
+# Default deny, then: the web UI, WebDAV and notify_push through Traefik;
+# Nextcloud's pods (the server and both CronJobs) to Postgres, Valkey,
+# kube-dns and the internet (app store, Proton's SMTP, federation, weather);
+# Valkey reachable from those pods only.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: nextcloud
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nextcloud
+  namespace: nextcloud
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/controller
+        operator: In
+        values: [nextcloud, cron, previews]
+  policyTypes: [Ingress, Egress]
+  ingress:
+    # nginx: web UI, WebDAV, /push/.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - { port: 8080, protocol: TCP }
+  egress:
+    # kube-dns, for the names below and the internet.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { port: 53, protocol: UDP }
+        - { port: 53, protocol: TCP }
+    # Its CNPG cluster (database.yaml).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: databases
+          podSelector:
+            matchLabels:
+              cnpg.io/cluster: nextcloud
+      ports:
+        - { port: 5432, protocol: TCP }
+    # Valkey.
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/controller: redis
+      ports:
+        - { port: 6379, protocol: TCP }
+    # App store, SMTP, federation, weather.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis
+  namespace: nextcloud
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/controller: redis
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/controller
+                operator: In
+                values: [nextcloud, cron, previews]
+      ports:
+        - { port: 6379, protocol: TCP }
+  # No egress: it talks to no one.
