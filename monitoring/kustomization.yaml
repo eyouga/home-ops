@@ -5,6 +5,7 @@ resources:
   - repository.yaml
   - grafana-admin.sops.yaml
   - alertmanager-ntfy.sops.yaml
+  - alertmanager-healthchecks.sops.yaml
   - kube-prometheus-stack.yaml
   - smartctl-exporter.yaml
   - dcgm-exporter.yaml

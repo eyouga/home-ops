@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: alertmanager-healthchecks
+    namespace: monitoring
+stringData:
+    ping: ENC[AES256_GCM,data:y/1r2lhrtEV8tbg7CE/qni/yRuTvi/StQToM4YjpMraD0FU6VGDbEe3+vWuG50fGGXCDj8+21WA=,iv:TOJXWEAf1QuHcH1Hc16pnTF3e/Zp76ekm3MrHfG2/S4=,tag:MFEQ0iaUlwm6U4+LQSuxDg==,type:str]
+    fail: ENC[AES256_GCM,data:VTRA50dA/qAhQ/JPd+2Bee5eyxwjmrxmp6WpPSlBoED8+p9zHZMAOOj37OmMR/wjXExdPXTdBXeO/WRAdw==,iv:jVtABzsnuZ9v4tgy1UsH10Y/0XfdsIEA6HtrfS1v3G0=,tag:O/yiGRM07WHi46rOcQq/kw==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBpdGRTRW5PNmtqV1MrSDU3
+            NjJzcjA4YlY4NTd2NXRoUEJQa2xPYlZFL2d3CkswS2VqSUsxRmlqTjFwTzlTbWd1
+            NmRlL1htOXE1VjFYN0MyeHE4aDVQZUEKLS0tIDRJYW9seGcvMDl5SDVxMFlIbmkx
+            WXkwUnZPODFhM3NaNlMyMUlOamV0YTgKQrwWWYu/KhoFaUZfQardj8XBz2dJl0vL
+            U9De7c0XGSeuXGf+lSPq5cWialUVFgEQxDDNNyAc9lYW6Tc+ggY4Yw==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1wg79n0lgmaaxc767tntfuly7fhhqtujr7pzuafgs9p7k3sh4tecqvccr7u
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-11-01T16:54:12Z"
+    mac: ENC[AES256_GCM,data:64ckWxvJct7F6OdBmFIbOaO0D3LCVcB3UkYZIZLJCuwXvQ0cE81CByCWcxkVLQ0xz9xnQG6dIFvfPMoWPz1BUVSiHkYg4Y2ZBw7HLpueNp6Cxc6iJw/9rSs2oqIieSbR9GFgrpLUGYDyPWa5O2RJEdS0uMo01uKyz9AyZxPs0fA=,iv:okmSfFGSHTAXl6lZ/ztq8IuVX9TUfwQGxpleuLZsxpY=,tag:O9Oi02leCZvlz5LzAl1T+g==,type:str]
+    mac_only_encrypted: true
+    version: 3.13.3

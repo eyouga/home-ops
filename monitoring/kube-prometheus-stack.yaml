@@ -65,9 +65,10 @@ spec:
               resources:
                 requests:
                   storage: 1Gi
-        # Mounted at /etc/alertmanager/secrets/alertmanager-ntfy/.
+        # Mounted at /etc/alertmanager/secrets/<name>/.
         secrets:
           - alertmanager-ntfy
+          - alertmanager-healthchecks
       config:
         route:
           receiver: ntfy
@@ -76,10 +77,25 @@ spec:
           group_interval: 5m
           repeat_interval: 12h
           routes:
-            # Always firing by design (proves the pipeline works); a
-            # dead-man's switch could watch it later. Not for the phone.
-            - receiver: "null"
+            # Always firing by design: the dead-man's switch. healthchecks.io
+            # e-mails if these pings stop (Prometheus or Alertmanager down,
+            # def-jam off the network).
+            - receiver: healthchecks
               matchers: [alertname = Watchdog]
+              group_wait: 0s
+              group_interval: 1m
+              repeat_interval: 1m
+            # Alertmanager couldn't deliver a notification (ntfy drops 4xx
+            # without retrying): the alert saying so would go through ntfy
+            # too, so it also fails the healthchecks.io check, then goes to
+            # ntfy as well, in case only some pushes fail. (The default
+            # receiver only takes alerts no child route matched, hence the
+            # explicit second route.)
+            - receiver: healthchecks-fail
+              matchers: [alertname =~ "AlertmanagerFailedToSendAlerts|AlertmanagerClusterFailedToSendAlerts"]
+              continue: true
+            - receiver: ntfy
+              matchers: [alertname =~ "AlertmanagerFailedToSendAlerts|AlertmanagerClusterFailedToSendAlerts"]
             - receiver: "null"
               matchers: [alertname = InfoInhibitor]
             # Info-level alerts stay in Alertmanager's UI.
@@ -94,6 +110,16 @@ spec:
               # readable push).
               - url_file: /etc/alertmanager/secrets/alertmanager-ntfy/url
                 send_resolved: true
+          # Written with `sops edit monitoring/alertmanager-healthchecks.sops.yaml`:
+          # `ping` = https://hc-ping.com/<uuid>, `fail` = the same + /fail.
+          - name: healthchecks
+            webhook_configs:
+              - url_file: /etc/alertmanager/secrets/alertmanager-healthchecks/ping
+                send_resolved: false
+          - name: healthchecks-fail
+            webhook_configs:
+              - url_file: /etc/alertmanager/secrets/alertmanager-healthchecks/fail
+                send_resolved: false
         # The chart's defaults, restated because `config` replaces them.
         inhibit_rules:
           - source_matchers: [severity = critical]
