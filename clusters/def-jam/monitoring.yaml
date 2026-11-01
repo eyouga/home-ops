@@ -1,0 +1,27 @@
+# After infra-configs: Prometheus, Alertmanager and Grafana keep their data on
+# the `fast` StorageClass, and Grafana's HTTPRoute needs the Gateway and the
+# wildcard certificate. apps/ does not wait for this layer: the CRDs its
+# ServiceMonitors need come from infra-crds-prometheus, and a broken
+# dashboard must not hold back a restore.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: monitoring
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: infra-configs
+  interval: 1h
+  retryInterval: 1m
+  timeout: 10m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./monitoring
+  prune: true
+  wait: true
+  # Grafana's admin login and Alertmanager's ntfy URL, SOPS-encrypted.
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age

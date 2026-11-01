@@ -1,0 +1,136 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: monitoring
+spec:
+  interval: 1h
+  timeout: 10m
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      version: 92.17.0 # operator v0.94.2
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+  values:
+    # The CRDs come from infra-crds-prometheus, ahead of every controller
+    # that ships a ServiceMonitor.
+    crds:
+      enabled: false
+    cleanPrometheusOperatorObjectNames: true
+
+    # k3s runs these inside its one process, listening on 127.0.0.1 only, and
+    # the datastore is kine/SQLite, not etcd. Scraping them would only raise
+    # permanent "target down" alerts; the chart drops their rules with them.
+    kubeControllerManager:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeProxy:
+      enabled: false
+    kubeEtcd:
+      enabled: false
+
+    prometheus:
+      prometheusSpec:
+        retention: 30d
+        # A ceiling below the PVC, so a scrape explosion trims history
+        # instead of filling the disk and stopping ingestion.
+        retentionSize: 40GB
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: fast
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 50Gi
+        # Pick up every ServiceMonitor, PodMonitor and PrometheusRule in the
+        # cluster, not only the ones labelled with this release's name, so
+        # each app's chart can ship its own.
+        serviceMonitorSelectorNilUsesHelmValues: false
+        podMonitorSelectorNilUsesHelmValues: false
+        ruleSelectorNilUsesHelmValues: false
+        probeSelectorNilUsesHelmValues: false
+        scrapeConfigSelectorNilUsesHelmValues: false
+
+    alertmanager:
+      alertmanagerSpec:
+        storage:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: fast
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 1Gi
+        # Mounted at /etc/alertmanager/secrets/alertmanager-ntfy/.
+        secrets:
+          - alertmanager-ntfy
+      config:
+        route:
+          receiver: ntfy
+          group_by: [alertname, namespace]
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 12h
+          routes:
+            # Always firing by design (proves the pipeline works); a
+            # dead-man's switch could watch it later. Not for the phone.
+            - receiver: "null"
+              matchers: [alertname = Watchdog]
+            - receiver: "null"
+              matchers: [alertname = InfoInhibitor]
+            # Info-level alerts stay in Alertmanager's UI.
+            - receiver: "null"
+              matchers: [severity = info]
+        receivers:
+          - name: "null"
+          - name: ntfy
+            webhook_configs:
+              # The whole URL is the secret: https://ntfy.sh/<topic>?template=alertmanager
+              # (ntfy's built-in template turns Alertmanager's JSON into a
+              # readable push).
+              - url_file: /etc/alertmanager/secrets/alertmanager-ntfy/url
+                send_resolved: true
+        # The chart's defaults, restated because `config` replaces them.
+        inhibit_rules:
+          - source_matchers: [severity = critical]
+            target_matchers: [severity =~ warning|info]
+            equal: [namespace, alertname]
+          - source_matchers: [severity = warning]
+            target_matchers: [severity = info]
+            equal: [namespace, alertname]
+          - source_matchers: [alertname = InfoInhibitor]
+            target_matchers: [severity = info]
+            equal: [namespace]
+          - target_matchers: [alertname = InfoInhibitor]
+
+    grafana:
+      admin:
+        # Written with `sops edit monitoring/grafana-admin.sops.yaml`.
+        existingSecret: grafana-admin
+        userKey: admin-user
+        passwordKey: admin-password
+      # Dashboards made in the UI survive a restart. The ones that matter
+      # belong in git as ConfigMaps (the sidecar loads them from every
+      # namespace).
+      persistence:
+        enabled: true
+        storageClassName: fast
+        size: 1Gi
+      # SQLite on a RWO volume: never two pods at once.
+      deploymentStrategy:
+        type: Recreate
+      grafana.ini:
+        server:
+          root_url: https://grafana.eyouga.fr
+      route:
+        main:
+          enabled: true
+          hostnames: [grafana.eyouga.fr]
+          parentRefs:
+            - name: traefik-gateway
+              namespace: traefik
+              sectionName: websecure

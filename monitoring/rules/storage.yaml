@@ -1,0 +1,79 @@
+# Pool and disk alerts. ZED on the host (hosts/def-jam/zfs.nix in the
+# dotfiles) is the other half: it reports each vdev state change, so a second
+# IronWolf failing while tank is already DEGRADED still pages, and it works
+# with the cluster down. node-exporter only sees one state per pool, which is
+# why these rules can't catch that case on their own.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: storage
+  namespace: monitoring
+spec:
+  groups:
+    - name: zfs
+      rules:
+        # node_zfs_zpool_state is 1 for the pool's current state and 0 for
+        # the others (online, degraded, faulted, offline, removed, unavail,
+        # suspended).
+        - alert: ZfsPoolNotOnline
+          # Every pool not ONLINE, minus one series: tank while it is
+          # DEGRADED, which it is on purpose until hdd4's replacement is in
+          # (hdd4 OFFLINE). Any other state of tank still fires.
+          expr: >-
+            node_zfs_zpool_state{state!="online"} == 1
+            unless on(zpool, state) node_zfs_zpool_state{zpool="tank", state="degraded"}
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "ZFS pool {{ $labels.zpool }} is {{ $labels.state }}"
+            description: >-
+              `zpool status {{ $labels.zpool }}` on def-jam. RAIDZ2 only
+              protects tank if a failed disk is replaced before the next one
+              fails.
+        # The exception above must not outlive the dead disk.
+        - alert: ZfsTankExceptionStale
+          expr: node_zfs_zpool_state{zpool="tank", state="online"} == 1
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "tank is ONLINE again: drop its DEGRADED exception"
+            description: >-
+              Remove the tank exception from ZfsPoolNotOnline and this rule
+              in monitoring/rules/storage.yaml, so a future degradation pages.
+        - alert: ZfsPoolMissing
+          expr: >-
+            absent(node_zfs_zpool_state{zpool="fast"})
+            or absent(node_zfs_zpool_state{zpool="tank"})
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "A ZFS pool is not imported on def-jam"
+            description: node-exporter reports no state for fast or tank.
+
+    - name: disks
+      rules:
+        # Three IronWolfs today; 4 once the replacement is in.
+        - alert: IronWolfMissing
+          expr: count(smartctl_device{model_name=~"ST4000VN.*"}) < 3 or absent(smartctl_device{model_name=~"ST4000VN.*"})
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "An IronWolf stopped answering SMART"
+            description: >-
+              smartctl-exporter sees fewer IronWolf drives than tank has. A
+              disk that drops off the bus may not have faulted in ZFS yet.
+        - alert: DiskSectorsReallocated
+          expr: >-
+            smartctl_device_attribute{attribute_name=~"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable", attribute_value_type="raw"} > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.device }}: {{ $labels.attribute_name }} = {{ $value }}"
+            description: >-
+              All three IronWolfs were at 0 on 2026-11-01. A count that keeps
+              growing means the disk is on its way out.

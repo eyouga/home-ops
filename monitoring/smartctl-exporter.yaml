@@ -1,0 +1,26 @@
+# Disk health for all six drives: IronWolf reallocated/pending sectors,
+# Kingston SSD wear, the NVMe's spare and media errors. Privileged, with the
+# host's /dev: smartctl needs raw device access.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: smartctl-exporter
+  namespace: monitoring
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: prometheus-smartctl-exporter
+      version: 0.19.0 # exporter v0.15.0
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+  values:
+    serviceMonitor:
+      enabled: true
+    prometheusRules:
+      enabled: true
+    common:
+      config:
+        # Never spin up a sleeping disk just to read its counters.
+        smartctl_powermode_check: standby

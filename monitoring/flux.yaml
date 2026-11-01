@@ -1,0 +1,22 @@
+# Flux's own controllers (reconcile durations, errors, queue depth). The
+# objects' Ready state would need kube-state-metrics' custom-resource config;
+# not wired yet.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  namespaceSelector:
+    matchNames: [flux-system]
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - helm-controller
+          - kustomize-controller
+          - notification-controller
+          - source-controller
+  podMetricsEndpoints:
+    - port: http-prom
