@@ -1,0 +1,137 @@
+# Transmission, replacing qBittorrent (Phase 6, decided 2026-11-01): its
+# settings live in git. config/settings.json (snake_case, the 4.1 format)
+# is copied over /config/settings.json by an init container at every start,
+# so the file in git always wins: Transmission rewrites its copy on exit and
+# whenever the web UI or RPC changes a setting, and those changes last only
+# until the next restart. TR_SAVE_VERSION_FORMAT=5 makes it write the same
+# snake_case keys back. The image templates settings.json from TRANSMISSION__*
+# env only when such variables exist; there are none here.
+#
+# Choices in settings.json, carried over from qBittorrent unless said:
+# - everything saves under /torrents (default); the *arrs add their category
+#   subdirectory (/torrents/tv-sonarr, radarr, lidarr, prowlarr), the layout
+#   qBittorrent's categories made. No incomplete dir, as before.
+# - peers on 6881 (the .203 LoadBalancer below), no UPnP/NAT-PMP, no LPD
+#   (nothing to discover from a pod network).
+# - the old bandwidth schedule: 500 kB/s down / 50 kB/s up from 06:00 to
+#   midnight every day, unlimited overnight (alt_speed_time_*; the end before
+#   the begin wraps past midnight).
+# - no ratio or idle limit. Queue: 5 downloads at once (qBittorrent's 0 was
+#   Phase 5's freeze, not a setting to keep), seeding unqueued.
+# - RPC without a login and without the IP allowlist: the NetworkPolicy is
+#   the allowlist (Traefik, the *arrs, Prowlarr, Home Assistant). The Host
+#   allowlist stays on (DNS-rebinding guard); IP Hosts, like the probes',
+#   always pass. Forward-auth in front of the UI is Phase 8.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: transmission
+  namespace: transmission
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      transmission:
+        strategy: Recreate
+        pod:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 568
+            runAsGroup: 568
+            seccompProfile:
+              type: RuntimeDefault
+        initContainers:
+          settings:
+            image: &image
+              repository: ghcr.io/home-operations/transmission
+              tag: 4.1.4@sha256:4d7179443512c84e564e2c8c5e5f17b0db069f63a48eded5f0e371f7429a7463
+            command: [cp, /settings/settings.json, /config/settings.json]
+            securityContext: &securityContext
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+        containers:
+          app:
+            image: *image
+            env:
+              TZ: Europe/Paris
+              TR_SAVE_VERSION_FORMAT: "5"
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /transmission/web/
+                    port: 9091
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *probe
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                memory: 1Gi
+            securityContext: *securityContext
+
+    service:
+      app:
+        controller: transmission
+        # With two Services the chart suffixes both names; this one is what
+        # the *arrs, Prowlarr, Home Assistant and the route call:
+        # transmission.transmission.svc.
+        forceRename: transmission
+        ports:
+          http:
+            port: 9091
+      # Peers, on the IP and port qBittorrent had. Reachable from outside
+      # only if the router forwards 6881 to it.
+      torrent:
+        controller: transmission
+        type: LoadBalancer
+        annotations:
+          metallb.io/loadBalancerIPs: 192.168.1.203
+        externalTrafficPolicy: Local
+        ports:
+          torrent-tcp:
+            port: 6881
+            protocol: TCP
+          torrent-udp:
+            port: 6881
+            protocol: UDP
+
+    persistence:
+      # Resume data, the added .torrent files, stats, DHT state.
+      config:
+        type: persistentVolumeClaim
+        storageClass: fast
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        retain: true
+        globalMounts:
+          - path: /config
+      # config/settings.json (kustomization.yaml's configMapGenerator), read
+      # only by the init container.
+      settings:
+        type: configMap
+        name: transmission-settings
+        advancedMounts:
+          transmission:
+            settings:
+              - path: /settings
+                readOnly: true
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+      # storage.yaml
+      torrents:
+        existingClaim: torrents
+        globalMounts:
+          - path: /torrents

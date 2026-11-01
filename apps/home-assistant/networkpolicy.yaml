@@ -62,6 +62,16 @@ spec:
               app.kubernetes.io/name: qbittorrent
       ports:
         - { port: 10095, protocol: TCP }
+    # The Transmission integration (replaces qBittorrent's).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: transmission
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: transmission
+      ports:
+        - { port: 9091, protocol: TCP }
     # The Jellyfin integration uses https://jellyfin.eyouga.fr
     # (release.yaml's hostAliases): traffic to the LoadBalancer IP reaches
     # Traefik's pods on 8443.

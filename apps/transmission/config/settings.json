@@ -1,0 +1,47 @@
+{
+  "download_dir": "/torrents",
+  "incomplete_dir_enabled": false,
+  "rename_partial_files": true,
+  "start_added_torrents": true,
+  "torrent_added_verify_mode": "fast",
+  "umask": "022",
+  "watch_dir_enabled": false,
+
+  "peer_port": 6881,
+  "peer_port_random_on_start": false,
+  "port_forwarding_enabled": false,
+  "dht_enabled": true,
+  "pex_enabled": true,
+  "lpd_enabled": false,
+  "encryption": "preferred",
+  "peer_limit_global": 200,
+  "peer_limit_per_torrent": 50,
+
+  "speed_limit_down_enabled": false,
+  "speed_limit_up_enabled": false,
+  "alt_speed_down": 500,
+  "alt_speed_up": 50,
+  "alt_speed_time_enabled": true,
+  "alt_speed_time_begin": 360,
+  "alt_speed_time_end": 0,
+  "alt_speed_time_day": 127,
+
+  "download_queue_enabled": true,
+  "download_queue_size": 5,
+  "seed_queue_enabled": false,
+  "queue_stalled_enabled": true,
+  "queue_stalled_minutes": 30,
+  "ratio_limit_enabled": false,
+  "idle_seeding_limit_enabled": false,
+
+  "rpc_enabled": true,
+  "rpc_bind_address": "0.0.0.0",
+  "rpc_port": 9091,
+  "rpc_url": "/transmission/",
+  "rpc_authentication_required": false,
+  "rpc_whitelist_enabled": false,
+  "rpc_host_whitelist_enabled": true,
+  "rpc_host_whitelist": "transmission.eyouga.fr,transmission,transmission.transmission,transmission.transmission.svc,transmission.transmission.svc.cluster.local",
+
+  "message_level": 4
+}

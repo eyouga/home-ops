@@ -1,0 +1,71 @@
+# Default deny, then: UI, the *arrs, Prowlarr and Home Assistant as RPC
+# clients, peers in and out.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: transmission
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: transmission
+  namespace: transmission
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: transmission
+  policyTypes: [Ingress, Egress]
+  ingress:
+    # Web UI.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - { port: 9091, protocol: TCP }
+    # RPC. With no login and no IP allowlist in settings.json, this list is
+    # what decides who may drive Transmission.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: sonarr
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: radarr
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: lidarr
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: prowlarr
+        # Home Assistant's Transmission integration (sensors, pause/resume).
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: home-assistant
+      ports:
+        - { port: 9091, protocol: TCP }
+    # Incoming peers, from anywhere.
+    - ports:
+        - { port: 6881, protocol: TCP }
+        - { port: 6881, protocol: UDP }
+  egress:
+    # kube-dns, for trackers and the internet.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { port: 53, protocol: UDP }
+        - { port: 53, protocol: TCP }
+    # Peers, trackers and DHT: any port, any protocol, public addresses only.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]

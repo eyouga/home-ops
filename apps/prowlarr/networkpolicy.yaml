@@ -87,6 +87,12 @@ spec:
               kubernetes.io/metadata.name: qbittorrent
       ports:
         - { port: 10095, protocol: TCP }
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: transmission
+      ports:
+        - { port: 9091, protocol: TCP }
     # The indexers themselves.
     - to:
         - ipBlock:
