@@ -1,0 +1,25 @@
+# Advertises the RTX 2070 as `nvidia.com/gpu` (Jellyfin in Phase 5).
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: nvidia-device-plugin
+  namespace: nvidia-device-plugin
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: nvidia-device-plugin
+      version: 0.20.1
+      sourceRef:
+        kind: HelmRepository
+        name: nvidia-device-plugin
+  values:
+    # The plugin itself needs the driver (NVML) to find the GPU.
+    runtimeClassName: nvidia-cdi
+    # Hand pods NVIDIA_VISIBLE_DEVICES=<index>: the host's CDI spec names its
+    # devices by index ("0", plus "all"), so a UUID wouldn't resolve.
+    deviceListStrategy: envvar
+    deviceIDStrategy: index
+    # The chart only schedules on nodes labelled by Node Feature Discovery,
+    # which this one-node cluster doesn't run.
+    affinity: null

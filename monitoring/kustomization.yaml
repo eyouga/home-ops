@@ -7,5 +7,6 @@ resources:
   - alertmanager-ntfy.sops.yaml
   - kube-prometheus-stack.yaml
   - smartctl-exporter.yaml
+  - dcgm-exporter.yaml
   - rules/storage.yaml
   - flux.yaml
