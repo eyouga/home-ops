@@ -19,15 +19,9 @@ spec:
   chartRef:
     kind: OCIRepository
     name: app-template
-  # Restore window only: Helm would wait for the config PVC to bind, which
-  # needs a pod. Removed together with replicas: 0.
-  install:
-    disableWait: true
   values:
     controllers:
       homepage:
-        # 0 while /app/config is restored; then 1.
-        replicas: 0
         strategy: Recreate
         pod:
           automountServiceAccountToken: false
