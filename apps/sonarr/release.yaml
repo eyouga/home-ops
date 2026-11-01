@@ -1,5 +1,8 @@
-# Sonarr at the old server's exact image (Phase 5: restore first, upgrade in
-# Phase 6). Config from the rescued /mnt/Bim/apps/sonarr/config; uid 568
+# Sonarr, restored at the old server's 4.0.4 (Phase 5), then moved straight
+# to current (Phase 6; its SQLite migrates forward on start).
+# home-operations builds from the develop channel: pin only builds whose
+# commit is an upstream stable release (4.0.20.3012 = stable 4.0.20.3014).
+# Config from the rescued /mnt/Bim/apps/sonarr/config; uid 568
 # like on TrueNAS, so the restored files need no chown. Paths inside the
 # container match the old ones (/media/series, /torrents), so the database's
 # root folder and qBittorrent's save paths still hold.
@@ -27,10 +30,13 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/onedr0p/sonarr
-              tag: 4.0.4.1491@sha256:b513d3836c5b86d3e5c2eb7cb4908e0002856d922b0a360f136781aaa89ef38a
+              repository: ghcr.io/home-operations/sonarr
+              tag: 4.0.20.3012@sha256:1f19eb5e0f421418c1a956bbe01310a0141423afe28bd9a4b1dcb8629ff2bce2
             env:
               TZ: Europe/Paris
+              # The image says develop; its "update available" check should
+              # follow the stable channel we pin from.
+              SONARR__UPDATE__BRANCH: main
             probes:
               liveness: &probe
                 enabled: true
