@@ -1,0 +1,82 @@
+# Gitea's Postgres, in the `databases` namespace like every CNPG cluster (its
+# volume lands on fast/k8s-db). The old one was PG 15.3; Phase 5 restores
+# its dump into PG 16 (MIGRATION.md: one Postgres major for every app until
+# Nextcloud allows newer). The `gitea` role's password comes from
+# db-credentials.sops.yaml, the same value as the app's credentials.sops.yaml,
+# not from CNPG's generated `gitea-app` Secret (it can't cross namespaces).
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: gitea
+  namespace: databases
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.15-standard-trixie@sha256:1ec419e997a8bde5263b6951f4c5ebc4aa2e1937927001f2561025c0a816e174
+  storage:
+    storageClass: fast
+    size: 5Gi
+  bootstrap:
+    initdb:
+      database: gitea
+      owner: gitea
+      secret:
+        name: gitea-db
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+---
+# Cluster.spec.monitoring.enablePodMonitor is deprecated; this is its
+# replacement. podRole=instance leaves out poolers, should one ever exist.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: gitea
+  namespace: databases
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: gitea
+      cnpg.io/podRole: instance
+  podMetricsEndpoints:
+    - port: metrics
+---
+# Ingress only: who may reach this database. Egress stays open, since the
+# instance manager talks to the API server (the node's own IP).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gitea
+  namespace: databases
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: gitea
+  policyTypes: [Ingress]
+  ingress:
+    # Gitea itself.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: gitea
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: gitea
+      ports:
+        - { port: 5432, protocol: TCP }
+    # The operator, through the instance manager's status endpoint.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system
+      ports:
+        - { port: 8000, protocol: TCP }
+    # Prometheus (the PodMonitor above).
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - { port: 9187, protocol: TCP }

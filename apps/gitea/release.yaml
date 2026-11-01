@@ -1,0 +1,125 @@
+# Gitea at the old server's exact image (Phase 5: restore first, upgrade in
+# Phase 6). Its /data is the rescued /mnt/Bim/apps/gitea, uid 1000 (the
+# rootless image's `git` user, not 568). The env below is the old chart's
+# gitea-env, so app.ini (/data/gitea/conf/app.ini) and every path in it hold
+# unchanged. The image's entrypoint runs environment-to-ini at each start,
+# which writes the GITEA__section__KEY variables into app.ini: the new
+# database's address and password (credentials.sops.yaml), and an in-memory
+# cache in place of the old memcached.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: gitea
+  namespace: gitea
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  # Restore window only: Helm would wait for the data PVC to bind, which
+  # needs a pod. Removed together with replicas: 0.
+  install:
+    disableWait: true
+  values:
+    controllers:
+      gitea:
+        # 0 while /data and the database are restored; then 1.
+        replicas: 0
+        strategy: Recreate
+        pod:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: gitea/gitea
+              tag: 1.21.3-rootless@sha256:00677d8d32eddb4c9c61ef2834ee89d9b269036c6918081c3971a6009e7ed2c0
+            env:
+              TZ: Europe/Paris
+              # The old chart's gitea-env (minus its unused admin bootstrap).
+              GITEA_WORK_DIR: /data
+              GITEA_CUSTOM: /data/gitea
+              GITEA_APP_INI: /data/gitea/conf/app.ini
+              GITEA_TEMP: /tmp/gitea
+              TMPDIR: /tmp/gitea
+              GNUPGHOME: /data/git/.gnupg
+              SSH_PORT: "2222"
+              SSH_LISTEN_PORT: "2222"
+              # Written into app.ini by environment-to-ini.
+              GITEA__database__HOST: gitea-rw.databases.svc:5432
+              GITEA__cache__ADAPTER: memory
+            envFrom:
+              # GITEA__database__PASSWD
+              - secretRef:
+                  name: gitea-db
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/healthz
+                    port: 3000
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *probe
+              # Database migrations run before the server listens (Phase 6).
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/healthz
+                    port: 3000
+                  periodSeconds: 10
+                  failureThreshold: 60
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+
+    service:
+      app:
+        controller: gitea
+        ports:
+          http:
+            port: 3000
+
+    serviceMonitor:
+      gitea:
+        serviceName: gitea
+        endpoints:
+          - port: http
+            path: /metrics
+            interval: 1m
+
+    persistence:
+      data:
+        type: persistentVolumeClaim
+        storageClass: fast
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        retain: true
+        globalMounts:
+          - path: /data
+      # The image's HOME (/var/lib/gitea/git); scratch, as on the old server.
+      varlib:
+        type: emptyDir
+        globalMounts:
+          - path: /var/lib/gitea
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
