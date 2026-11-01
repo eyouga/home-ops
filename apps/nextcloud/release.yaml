@@ -306,6 +306,13 @@ spec:
             app: [{path: /tmp}]
           previews:
             app: [{path: /tmp}]
+      # nginx.conf's *_temp_path dirs; nginx creates them but not their
+      # parent (the old chart's nginx-temp).
+      nginx-temp:
+        type: emptyDir
+        advancedMounts:
+          nextcloud:
+            nginx: [{path: /tmp/nginx}]
       valkey:
         type: emptyDir
         advancedMounts:
