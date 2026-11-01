@@ -33,6 +33,9 @@ spec:
               tag: 2.7.0.5723@sha256:fcf7498692f97698ea8b8f7078a0f81120a16e7354e4c232b5e3810e3e783dff
             env:
               TZ: Europe/Paris
+              # The image says develop; its "update available" check should
+              # follow the stable channel we pin from.
+              PROWLARR__UPDATE__BRANCH: master
             probes:
               liveness: &probe
                 enabled: true
