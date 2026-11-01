@@ -24,15 +24,9 @@ spec:
   chartRef:
     kind: OCIRepository
     name: app-template
-  # Restore window only: Helm would wait for the PVCs to bind, which needs a
-  # pod. Removed together with replicas: 0 and the CronJobs' suspend.
-  install:
-    disableWait: true
   values:
     controllers:
       nextcloud:
-        # 0 while the database, config and html are restored; then 1.
-        replicas: 0
         strategy: Recreate
         pod:
           securityContext: &podsec
