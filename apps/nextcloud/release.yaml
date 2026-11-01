@@ -148,8 +148,6 @@ spec:
       cron:
         type: cronjob
         cronjob:
-          # true while restoring; then false.
-          suspend: true
           schedule: "*/5 * * * *"
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
@@ -175,7 +173,6 @@ spec:
       previews:
         type: cronjob
         cronjob:
-          suspend: true
           schedule: "*/30 * * * *"
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
