@@ -1,5 +1,8 @@
-# Radarr at the old server's exact image (Phase 5: restore first, upgrade in
-# Phase 6). Config from the rescued /mnt/Bim/apps/Radarr/config; uid 568
+# Radarr, restored at the old server's 5.6.0 (Phase 5), then moved straight
+# to current (Phase 6; its SQLite migrates forward on start).
+# home-operations builds from the develop channel: pin only builds that are
+# also an upstream stable release. Config from the rescued
+# /mnt/Bim/apps/Radarr/config; uid 568
 # like on TrueNAS, so the restored files need no chown. Paths inside the
 # container match the old ones (/media/films, /torrents), so the database's
 # root folder and qBittorrent's save paths still hold.
@@ -27,10 +30,13 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/onedr0p/radarr
-              tag: 5.6.0.8846@sha256:3c75c2adc6ce547131a74b10fec4e0101658113810dba11b96878a0c3990c641
+              repository: ghcr.io/home-operations/radarr
+              tag: 6.4.4.10685@sha256:1902ad2c08e9bac276ff9a1429af2eaa2f3c635a51f138f1b3eb734995171537
             env:
               TZ: Europe/Paris
+              # The image says develop; its "update available" check should
+              # follow the stable channel we pin from.
+              RADARR__UPDATE__BRANCH: master
             probes:
               liveness: &probe
                 enabled: true
