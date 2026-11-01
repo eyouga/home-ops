@@ -77,3 +77,17 @@ spec:
             description: >-
               All three IronWolfs were at 0 on 2026-11-01. A count that keeps
               growing means the disk is on its way out.
+        # Kingston A400s report wear as attribute 231 (normalized, 100 = new;
+        # 100 and 99 on 2026-11-01). Both mirror halves wear together.
+        - alert: SsdWearingOut
+          expr: >-
+            smartctl_device_attribute{attribute_name="SSD_Life_Left", attribute_value_type="value"} < 20
+            or smartctl_device_percentage_used > 80
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.device }} is wearing out"
+            description: >-
+              Life left under 20 % (SATA) or over 80 % used (NVMe). The two
+              Kingstons are a mirror of the same age: replace one early.
