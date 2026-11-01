@@ -63,6 +63,9 @@ spec:
     service:
       app:
         controller: qbittorrent
+        # With two Services the chart suffixes both names; this one is what
+        # the *arrs, Prowlarr and the route call: qbittorrent.qbittorrent.svc.
+        forceRename: qbittorrent
         ports:
           http:
             port: 10095
