@@ -46,6 +46,7 @@ spec:
               # Written into app.ini by environment-to-ini.
               GITEA__database__HOST: gitea-rw.databases.svc:5432
               GITEA__cache__ADAPTER: memory
+              GITEA__cache__HOST: ""
             envFrom:
               # GITEA__database__PASSWD
               - secretRef:
