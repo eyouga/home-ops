@@ -1,0 +1,27 @@
+# Flux objects that stopped reconciling. The controllers' own errors are in
+# their metrics (PodMonitor in ../flux.yaml); this is the objects' state, from
+# kube-state-metrics (../flux-state-metrics.yaml).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: flux
+  namespace: monitoring
+spec:
+  groups:
+    - name: flux
+      rules:
+        # Not Ready (False, or stuck Unknown) for 15 minutes; suspended
+        # objects are left alone on purpose. Long enough for a slow Helm
+        # install (kube-prometheus-stack has a 10 min timeout).
+        - alert: FluxObjectNotReady
+          expr: >-
+            max by (customresource_kind, exported_namespace, name, ready)
+              (gotk_resource_info{ready!="True", suspended!="true"})
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.customresource_kind }} {{ $labels.exported_namespace }}/{{ $labels.name }} is not Ready ({{ $labels.ready }})"
+            description: >-
+              `flux get all -A --status-selector ready=false`, then
+              `flux events -n {{ $labels.exported_namespace }} --for {{ $labels.customresource_kind }}/{{ $labels.name }}`.

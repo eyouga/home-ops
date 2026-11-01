@@ -16,3 +16,13 @@ spec:
     crds: CreateReplace
   upgrade:
     crds: CreateReplace
+  values:
+    # Metrics are HTTPS behind a TokenReview/SubjectAccessReview: Prometheus
+    # scrapes with its service-account token, whose ClusterRole already
+    # allows GET /metrics. Rules: pool usage/exhaustion, stale or unloaded
+    # config (BGP session rule too, inert in L2 mode).
+    prometheus:
+      serviceMonitor:
+        enabled: true
+      prometheusRule:
+        enabled: true

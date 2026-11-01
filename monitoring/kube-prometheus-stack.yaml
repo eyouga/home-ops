@@ -13,6 +13,11 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: prometheus-community
+  # Flux objects' Ready state as kube-state-metrics series.
+  valuesFrom:
+    - kind: ConfigMap
+      name: flux-state-metrics
+      valuesKey: flux-state-metrics.yaml
   values:
     # The CRDs come from infra-crds-prometheus, ahead of every controller
     # that ships a ServiceMonitor.

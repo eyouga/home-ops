@@ -1,0 +1,8 @@
+# Lets kustomize rewrite HelmRelease valuesFrom names to generated
+# ConfigMaps' hashed names.
+nameReference:
+  - kind: ConfigMap
+    version: v1
+    fieldSpecs:
+      - path: spec/valuesFrom/name
+        kind: HelmRelease

@@ -1,6 +1,5 @@
 # Flux's own controllers (reconcile durations, errors, queue depth). The
-# objects' Ready state would need kube-state-metrics' custom-resource config;
-# not wired yet.
+# objects' Ready state comes from kube-state-metrics (flux-state-metrics.yaml).
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
