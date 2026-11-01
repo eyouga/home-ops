@@ -16,15 +16,9 @@ spec:
   chartRef:
     kind: OCIRepository
     name: app-template
-  # Restore window only: Helm would wait for the data PVC to bind, which
-  # needs a pod. Removed together with replicas: 0.
-  install:
-    disableWait: true
   values:
     controllers:
       gitea:
-        # 0 while /data and the database are restored; then 1.
-        replicas: 0
         strategy: Recreate
         pod:
           securityContext:
