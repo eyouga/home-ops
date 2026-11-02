@@ -91,7 +91,6 @@ spec:
         interval: 60s
         scrapeTimeout: 30s
       targets:
-        - { name: alert-test, url: "https://auth.eyouga.fr/?alert-test", module: login_gate }
         - { name: authelia, url: "https://auth.eyouga.fr/api/health", module: http_ok }
         - { name: authelia-login, url: "https://auth.eyouga.fr/", module: login_page }
         - { name: jellyfin, url: "https://jellyfin.eyouga.fr/health", module: http_ok }
