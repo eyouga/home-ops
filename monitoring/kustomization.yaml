@@ -4,6 +4,7 @@ resources:
   - namespace.yaml
   - repository.yaml
   - grafana-admin.sops.yaml
+  - grafana-oidc.sops.yaml
   - alertmanager-ntfy.sops.yaml
   - alertmanager-healthchecks.sops.yaml
   - kube-prometheus-stack.yaml
