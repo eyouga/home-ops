@@ -1,0 +1,8 @@
+# Lets kustomize rewrite the HelmRelease's configMap volume name to the
+# generated ConfigMap's hashed name.
+nameReference:
+  - kind: ConfigMap
+    version: v1
+    fieldSpecs:
+      - path: spec/values/persistence/settings/name
+        kind: HelmRelease

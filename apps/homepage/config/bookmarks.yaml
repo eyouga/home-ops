@@ -1,0 +1,7 @@
+- Code:
+    - home-ops:
+        - icon: github.png
+          href: https://github.com/eyouga/home-ops
+    - dotfiles:
+        - icon: github.png
+          href: https://github.com/eyouga/.dotfiles

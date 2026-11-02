@@ -1,0 +1,8 @@
+# The whole configuration lives here (hashed ConfigMap, mounted over an
+# emptyDir at /app/config): nothing to back up, edit and push to change it.
+title: def-jam
+language: fr
+theme: dark
+color: slate
+headerStyle: clean
+target: _blank

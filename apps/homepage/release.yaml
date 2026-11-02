@@ -1,14 +1,13 @@
-# homepage v0.8.13, the old server's exact image (Phase 5: restore first,
-# upgrade in Phase 6). /app/config is the rescued homepage-config PVC: it
-# was never set up, so it still holds the image's sample files (Dec 2023).
-# uid 568 and a read-only root, as on TrueNAS.
+# homepage, the landing page at the apex (Phase 8 puts it behind the SSO). The
+# old server's install was never set up (the image's samples), so nothing was
+# carried over: the whole configuration is config/ in git (settings, services,
+# widgets, bookmarks), with no state and no PVC. uid 568 and a read-only root;
+# /app/config is an emptyDir because homepage copies skeletons of the files it
+# doesn't find there (docker.yaml, kubernetes.yaml, ...), all left empty.
 #
-# Left out on purpose: the old chart's `kubernetes.yaml: mode: cluster`
-# (a ConfigMap over the PVC's sample) and its cluster-wide read access to
-# pods, nodes and ingresses. Nothing in the config used them (no kubernetes
-# widget, and homepage 0.8 discovers Ingresses, not HTTPRoutes), so the
-# restored sample (no mode = disabled) applies, and the pod gets no API
-# token.
+# Left out on purpose: the old chart's `kubernetes.yaml: mode: cluster` and its
+# cluster-wide read access to pods, nodes and ingresses: nothing here uses them,
+# so the pod gets no API token.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -25,6 +24,21 @@ spec:
         strategy: Recreate
         pod:
           automountServiceAccountToken: false
+          # services.yaml's siteMonitor checks go through Traefik, as a browser
+          # on the LAN would (from a pod these names would go to public DNS).
+          hostAliases:
+            - ip: 192.168.1.201
+              hostnames:
+                - jellyfin.eyouga.fr
+                - sonarr.eyouga.fr
+                - radarr.eyouga.fr
+                - lidarr.eyouga.fr
+                - prowlarr.eyouga.fr
+                - transmission.eyouga.fr
+                - nextcloud.eyouga.fr
+                - homeassistant.eyouga.fr
+                - git.eyouga.fr
+                - grafana.eyouga.fr
           securityContext:
             runAsNonRoot: true
             runAsUser: 568
@@ -35,9 +49,13 @@ spec:
           app:
             image:
               repository: ghcr.io/gethomepage/homepage
-              tag: v0.8.13@sha256:43a3ee88abe3b37c64bc52ea93da01c3dcb4a332a953bcd7f438c8d7328d3947
+              tag: v2.7.0@sha256:19c5c09184458a41b7b5915e71463a39f36cd33540f41bdbed008791b8182d5f
             env:
               TZ: Europe/Paris
+              # Required since v1: requests for any other Host are refused.
+              HOMEPAGE_ALLOWED_HOSTS: eyouga.fr
+              # No logs/ directory under /app/config.
+              LOG_TARGETS: stdout
             probes:
               liveness: &probe
                 enabled: true
@@ -71,13 +89,17 @@ spec:
 
     persistence:
       config:
-        type: persistentVolumeClaim
-        storageClass: fast
-        accessMode: ReadWriteOnce
-        size: 1Gi
-        retain: true
+        type: emptyDir
         globalMounts:
           - path: /app/config
+      settings:
+        type: configMap
+        name: homepage-config
+        globalMounts:
+          - { path: /app/config/settings.yaml, subPath: settings.yaml, readOnly: true }
+          - { path: /app/config/services.yaml, subPath: services.yaml, readOnly: true }
+          - { path: /app/config/widgets.yaml, subPath: widgets.yaml, readOnly: true }
+          - { path: /app/config/bookmarks.yaml, subPath: bookmarks.yaml, readOnly: true }
       tmp:
         type: emptyDir
         globalMounts:

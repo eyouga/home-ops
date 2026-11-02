@@ -6,3 +6,15 @@ resources:
   - repository.yaml
   - release.yaml
   - route.yaml
+# Hashed name, so editing config/ upgrades the HelmRelease and rolls the pod;
+# kustomizeconfig.yaml carries the hash into it.
+configMapGenerator:
+  - name: homepage-config
+    namespace: homepage
+    files:
+      - config/settings.yaml
+      - config/services.yaml
+      - config/widgets.yaml
+      - config/bookmarks.yaml
+configurations:
+  - kustomizeconfig.yaml

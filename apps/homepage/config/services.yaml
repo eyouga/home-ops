@@ -1,0 +1,60 @@
+# siteMonitor is checked by homepage itself, through Traefik (release.yaml's
+# hostAliases, the NetworkPolicy's egress to 8443), so a green dot means the
+# route, the certificate and the app all work.
+- Médias:
+    - Jellyfin:
+        icon: jellyfin.png
+        href: https://jellyfin.eyouga.fr
+        description: Films, séries, musique
+        siteMonitor: https://jellyfin.eyouga.fr/health
+
+- Téléchargements:
+    - Sonarr:
+        icon: sonarr.png
+        href: https://sonarr.eyouga.fr
+        description: Séries
+        siteMonitor: https://sonarr.eyouga.fr/ping
+    - Radarr:
+        icon: radarr.png
+        href: https://radarr.eyouga.fr
+        description: Films
+        siteMonitor: https://radarr.eyouga.fr/ping
+    - Lidarr:
+        icon: lidarr.png
+        href: https://lidarr.eyouga.fr
+        description: Musique
+        siteMonitor: https://lidarr.eyouga.fr/ping
+    - Prowlarr:
+        icon: prowlarr.png
+        href: https://prowlarr.eyouga.fr
+        description: Indexeurs
+        siteMonitor: https://prowlarr.eyouga.fr/ping
+    - Transmission:
+        icon: transmission.png
+        href: https://transmission.eyouga.fr/transmission/web/
+        description: Torrents
+        siteMonitor: https://transmission.eyouga.fr/transmission/web/
+
+- Maison:
+    - Nextcloud:
+        icon: nextcloud.png
+        href: https://nextcloud.eyouga.fr
+        description: Fichiers, agenda, contacts
+        siteMonitor: https://nextcloud.eyouga.fr/status.php
+    - Home Assistant:
+        icon: home-assistant.png
+        href: https://homeassistant.eyouga.fr
+        description: Domotique
+        siteMonitor: https://homeassistant.eyouga.fr/manifest.json
+    - Forgejo:
+        icon: forgejo.png
+        href: https://git.eyouga.fr
+        description: Miroirs des dépôts GitHub
+        siteMonitor: https://git.eyouga.fr/api/healthz
+
+- Système:
+    - Grafana:
+        icon: grafana.png
+        href: https://grafana.eyouga.fr
+        description: Métriques et alertes
+        siteMonitor: https://grafana.eyouga.fr/api/health
