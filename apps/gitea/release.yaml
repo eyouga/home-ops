@@ -53,6 +53,7 @@ spec:
               SSH_PORT: "2222"
               SSH_LISTEN_PORT: "2222"
               # Written into app.ini by environment-to-ini.
+              GITEA__DEFAULT__APP_NAME: Forgejo
               GITEA__database__HOST: gitea-rw.databases.svc:5432
               GITEA__cache__ADAPTER: memory
               GITEA__cache__HOST: ""
