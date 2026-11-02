@@ -1,0 +1,111 @@
+# A nightly pg_dump of each CNPG cluster into tank/backup/dumps (storage.yaml):
+# one CronJob per cluster, so one failing doesn't hide the others. They live in
+# `databases`, next to the clusters, to read each one's own `<cluster>-db`
+# Secret rather than keep a third copy of every password.
+#
+# The image is the clusters' own, same digest (pg_dump must not be older than
+# the server): bump it with them. Before syncoid (03:30, zfs.nix).
+# startingDeadlineSeconds: if def-jam sat at its LUKS prompt at 03:00, the dump
+# still runs once it's back. A failed job stays (failedJobsHistory), so
+# KubeJobFailed keeps firing until someone deletes it: `kubectl -n databases
+# delete job <job>`. A job that never starts is PgDumpStale (monitoring/rules).
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: pg-dump
+  namespace: databases
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 26
+        runAsGroup: 26
+        seccompProfile:
+          type: RuntimeDefault
+    controllers:
+      gitea:
+        type: cronjob
+        cronjob: &cronjob
+          schedule: "0 3 * * *"
+          concurrencyPolicy: Forbid
+          startingDeadlineSeconds: 43200
+          successfulJobsHistory: 1
+          failedJobsHistory: 3
+          backoffLimit: 0
+          activeDeadlineSeconds: 3600
+        containers:
+          app: &app
+            image:
+              repository: ghcr.io/cloudnative-pg/postgresql
+              tag: 18.6-standard-trixie@sha256:39add80f5b1e573e2f6b641c66fd1a2f8dede67ca0330e870285bc1078551390
+            command: [/bin/bash, /scripts/pg-dump.sh]
+            env:
+              CLUSTER: gitea
+              PGUSER:
+                valueFrom:
+                  secretKeyRef: { name: gitea-db, key: username }
+              PGPASSWORD:
+                valueFrom:
+                  secretKeyRef: { name: gitea-db, key: password }
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 512Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+      home-assistant:
+        type: cronjob
+        cronjob:
+          <<: *cronjob
+          schedule: "5 3 * * *"
+        containers:
+          app:
+            <<: *app
+            env:
+              CLUSTER: home-assistant
+              PGUSER:
+                valueFrom:
+                  secretKeyRef: { name: home-assistant-db, key: username }
+              PGPASSWORD:
+                valueFrom:
+                  secretKeyRef: { name: home-assistant-db, key: password }
+      nextcloud:
+        type: cronjob
+        cronjob:
+          <<: *cronjob
+          schedule: "10 3 * * *"
+        containers:
+          app:
+            <<: *app
+            env:
+              CLUSTER: nextcloud
+              PGUSER:
+                valueFrom:
+                  secretKeyRef: { name: nextcloud-db, key: username }
+              PGPASSWORD:
+                valueFrom:
+                  secretKeyRef: { name: nextcloud-db, key: password }
+
+    persistence:
+      dumps:
+        type: persistentVolumeClaim
+        existingClaim: pg-dumps
+        globalMounts:
+          - path: /dumps
+      script:
+        type: configMap
+        name: pg-dump-script
+        globalMounts:
+          - path: /scripts
+            readOnly: true

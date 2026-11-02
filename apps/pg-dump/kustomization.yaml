@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - networkpolicy.yaml
+  - repository.yaml
+  - storage.yaml
+  - release.yaml
+# Hashed name, so editing the script upgrades the HelmRelease.
+configMapGenerator:
+  - name: pg-dump-script
+    namespace: databases
+    files:
+      - scripts/pg-dump.sh
+configurations:
+  - kustomizeconfig.yaml

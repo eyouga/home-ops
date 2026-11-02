@@ -16,3 +16,4 @@ resources:
   - homepage
   - seerr
   - recyclarr
+  - pg-dump

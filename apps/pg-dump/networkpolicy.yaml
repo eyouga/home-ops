@@ -1,0 +1,30 @@
+# Nothing reaches these pods; they reach kube-dns and Postgres. Which cluster
+# each one may dump is decided at the other end: the NetworkPolicy in each
+# apps/<cluster>/database.yaml admits only its own controller's pods.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pg-dump
+  namespace: databases
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: pg-dump
+  policyTypes: [Ingress, Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { port: 53, protocol: UDP }
+        - { port: 53, protocol: TCP }
+    - to:
+        - podSelector:
+            matchLabels:
+              cnpg.io/podRole: instance
+      ports:
+        - { port: 5432, protocol: TCP }

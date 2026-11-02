@@ -1,0 +1,23 @@
+# Backups. A failed pg-dump job is KubeJobFailed; this catches the ones that
+# stop running without failing (suspended, never scheduled). The host's own
+# backups, syncoid and /persist, push to ntfy themselves (zfs.nix in the
+# dotfiles), since they must report with the cluster down.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: backup
+  namespace: monitoring
+spec:
+  groups:
+    - name: backup
+      rules:
+        - alert: PgDumpStale
+          expr: time() - kube_cronjob_status_last_successful_time{namespace="databases"} > 36 * 3600
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.cronjob }}: no successful dump for over 36 h"
+            description: >-
+              Nightly, into /srv/backup/dumps. `kubectl -n databases get cronjob,job`
+              and the last job's logs.

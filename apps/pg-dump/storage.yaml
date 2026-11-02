@@ -1,0 +1,35 @@
+# tank/backup/dumps (dotfiles' disko-config.nix, /srv/backup/dumps), owned by
+# Postgres's uid 26 through a tmpfiles rule in zfs.nix. Static PV, so the pods
+# stay on Pod Security `restricted`. type: Directory: until tank is imported
+# the path is missing, so the job waits instead of writing into the wiped root.
+# Retain: deleting these never touches the dumps. The capacity is a label.
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pg-dumps
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: databases
+    name: pg-dumps
+  hostPath:
+    path: /srv/backup/dumps
+    type: Directory
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pg-dumps
+  namespace: databases
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: ""
+  volumeName: pg-dumps
+  resources:
+    requests:
+      storage: 50Gi

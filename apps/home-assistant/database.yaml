@@ -68,6 +68,14 @@ spec:
               app.kubernetes.io/name: home-assistant
       ports:
         - { port: 5432, protocol: TCP }
+    # Its nightly dump (apps/pg-dump).
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: pg-dump
+              app.kubernetes.io/controller: home-assistant
+      ports:
+        - { port: 5432, protocol: TCP }
     # The operator, through the instance manager's status endpoint.
     - from:
         - namespaceSelector:
