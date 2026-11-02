@@ -18,3 +18,4 @@ resources:
   - seerr
   - recyclarr
   - pg-dump
+  - rollback-rehearsal
