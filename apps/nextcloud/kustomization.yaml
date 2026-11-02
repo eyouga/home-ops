@@ -8,6 +8,8 @@ resources:
   # the app in `nextcloud` (with Valkey's password). Same value in both.
   - db-credentials.sops.yaml
   - credentials.sops.yaml
+  # The client secret Authelia knows as `nextcloud`.
+  - oidc.sops.yaml
   - database.yaml
   - storage.yaml
   - release.yaml

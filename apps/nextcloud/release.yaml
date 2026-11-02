@@ -37,7 +37,8 @@ spec:
           # DNS; this sends it to Traefik, as blocky does on the LAN.
           hostAliases: &hostAliases
             - ip: 192.168.1.201
-              hostnames: [nextcloud.eyouga.fr]
+              # Its own URL, and the issuer user_oidc checks; both through Traefik.
+              hostnames: [nextcloud.eyouga.fr, auth.eyouga.fr]
           securityContext: &podsec
             runAsNonRoot: true
             runAsUser: 568
@@ -57,6 +58,12 @@ spec:
               # Imagick's fontconfig wants a writable cache; the root is
               # read-only and /tmp is an emptyDir in every pod.
               XDG_CACHE_HOME: /tmp/.cache
+              # Only for `occ user_oidc:provider`, read from the pod's environment.
+              OIDC_CLIENT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: nextcloud-oidc
+                    key: client-secret
             envFrom: &envFrom
               # NEXTCLOUD_DB_PASSWORD, REDIS_PASSWORD
               - secretRef:

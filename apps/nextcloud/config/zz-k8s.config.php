@@ -36,4 +36,13 @@ $CONFIG = array (
   // Heavy daily background jobs run in the 4 hours from 01:00 UTC
   // (02:00–06:00 in Paris), not whenever cron happens to pick them.
   'maintenance_window_start' => 1,
+  // Sign-in through Authelia (user_oidc; its provider is in the database,
+  // MIGRATION.md). Client secret in the body, as Authelia's client expects; the
+  // id token alone doesn't carry the name and address.
+  'user_oidc' => array (
+    'default_token_endpoint_auth_method' => 'client_secret_post',
+    'enrich_login_id_token_with_userinfo' => true,
+  ),
+  // A new account starts empty: files:transfer-ownership --move needs that.
+  'skeletondirectory' => '',
 );

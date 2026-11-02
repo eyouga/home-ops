@@ -164,12 +164,10 @@ spec:
           secretKeyRef:
             name: grafana-oidc
             key: client-secret
-      # The sidecars only ask for a reload over basic auth, which is off. Dashboards
-      # are picked up from their files anyway; a datasource change needs a restart.
+      # The sidecars ask for a reload over basic auth, which is off. Dashboards are
+      # picked up from their files anyway; a datasource change needs a restart.
       sidecar:
         dashboards:
-          skipReload: true
-        datasources:
           skipReload: true
       grafana.ini:
         server:
