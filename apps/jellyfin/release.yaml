@@ -35,7 +35,7 @@ spec:
           app:
             image:
               repository: ghcr.io/jellyfin/jellyfin
-              tag: 10.9.3@sha256:3022b48f18c810fe7a6a77ba3aef05bdbc9a05f253e856d2c96916fcdbcfc0f6
+              tag: 10.9.11@sha256:fc1b51f4be3fba725e42dae2022d9c6a5b069acce01bef04d32fdee025dc511e
             env:
               TZ: Europe/Paris
               JELLYFIN_PublishedServerUrl: https://jellyfin.eyouga.fr
@@ -53,7 +53,10 @@ spec:
                   timeoutSeconds: 5
                   failureThreshold: 5
               readiness: *probe
-              # The first start after a restore migrates and scans.
+              # A start after an upgrade runs the database migrations first,
+              # and killing the pod mid-migration can leave the database
+              # half-converted (10.11's notes: "DO NOT CANCEL OR INTERRUPT").
+              # 30 minutes, far more than this library needs.
               startup:
                 enabled: true
                 custom: true
@@ -62,7 +65,7 @@ spec:
                     path: /health
                     port: 8096
                   periodSeconds: 10
-                  failureThreshold: 60
+                  failureThreshold: 180
             resources:
               requests:
                 cpu: 100m
