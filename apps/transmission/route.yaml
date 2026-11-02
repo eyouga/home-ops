@@ -1,5 +1,5 @@
-# transmission.eyouga.fr. LAN only until Phase 8 (public DNS doesn't point
-# here; blocky does). The web UI lives at /transmission/web/.
+# transmission.eyouga.fr. LAN only: blocky points
+# here, and it isn't on the public listener. The web UI lives at /transmission/web/.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:

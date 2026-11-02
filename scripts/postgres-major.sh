@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # postgres-major.sh <cluster> <image-tag@digest> : one CNPG cluster to a new
 # Postgres major, in place (pg_upgrade --link, triggered by the image change).
-# The app (same name as its namespace and Deployment; gitea, home-assistant,
+# The app (same name as its namespace and Deployment; authelia, gitea, home-assistant,
 # nextcloud) is stopped first, so exact row counts before and after can be
 # compared. Dump to ~/def-jam-rescue/dumps + fast/k8s-db snapshot before. If the
 # upgrade job fails: revert the image in git, CNPG goes back to the old major.

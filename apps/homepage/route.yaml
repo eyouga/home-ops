@@ -1,6 +1,6 @@
 # The apex, eyouga.fr, as on the old server (the wildcard certificate covers
-# it, and the websecure listener takes any host). LAN only until Phase 8
-# (public DNS doesn't point here; blocky does).
+# it, and the websecure listener takes any host). LAN only: blocky points
+# here, and it isn't on the public listener.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:

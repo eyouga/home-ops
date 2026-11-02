@@ -22,7 +22,7 @@
 # - RPC without a login and without the IP allowlist: the NetworkPolicy is
 #   the allowlist (Traefik, the *arrs, Prowlarr, Home Assistant). The Host
 #   allowlist stays on (DNS-rebinding guard); IP Hosts, like the probes',
-#   always pass. Forward-auth in front of the UI is Phase 8.
+#   always pass. Authelia's forward-auth is in front of the UI (route.yaml).
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:

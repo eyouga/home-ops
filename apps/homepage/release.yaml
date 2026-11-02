@@ -1,4 +1,4 @@
-# homepage, the landing page at the apex (Phase 8 puts it behind the SSO). The
+# homepage, the landing page at the apex (behind Authelia, route.yaml). The
 # old server's install was never set up (the image's samples), so nothing was
 # carried over: the whole configuration is config/ in git (settings, services,
 # widgets, bookmarks), with no state and no PVC. uid 568 and a read-only root;

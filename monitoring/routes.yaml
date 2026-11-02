@@ -1,4 +1,4 @@
-# Prometheus and Alertmanager had no route until Phase 8. LAN only, behind Authelia.
+# Prometheus and Alertmanager, for their own UIs. LAN only, behind Authelia.
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
