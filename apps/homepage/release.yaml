@@ -64,6 +64,11 @@ spec:
                   httpGet:
                     path: /api/healthcheck
                     port: 3000
+                    # Probes come with the pod's IP as Host, which
+                    # HOMEPAGE_ALLOWED_HOSTS would refuse.
+                    httpHeaders:
+                      - name: Host
+                        value: eyouga.fr
                   periodSeconds: 30
                   timeoutSeconds: 5
                   failureThreshold: 3
