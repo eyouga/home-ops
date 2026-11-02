@@ -85,7 +85,7 @@
       description: "A rebuilt image under an unchanged tag: one PR a month for all of them",
       matchDatasources: ["docker"],
       matchUpdateTypes: ["digest"],
-      matchPackageNames: ["!ghcr.io/authelia/authelia", "!docker.io/library/nextcloud", "!ghcr.io/jellyfin/jellyfin"],
+      matchPackageNames: ["!ghcr.io/authelia/authelia", "!docker.io/library/nextcloud", "!docker.io/nginxinc/nginx-unprivileged", "!ghcr.io/jellyfin/jellyfin"],
       groupName: "rebuilt images",
       schedule: ["on the first day of the month"],
     },
@@ -115,7 +115,8 @@
     // case a release gets pulled, and when every check is green.
     {
       description: "Security-sensitive tier",
-      matchPackageNames: ["ghcr.io/authelia/authelia", "docker.io/library/nextcloud", "ghcr.io/jellyfin/jellyfin", "traefik", "cert-manager"],
+      // nginx is what stands in front of Nextcloud.
+      matchPackageNames: ["ghcr.io/authelia/authelia", "docker.io/library/nextcloud", "docker.io/nginxinc/nginx-unprivileged", "ghcr.io/jellyfin/jellyfin", "traefik", "cert-manager"],
       matchUpdateTypes: ["patch", "digest"],
       automerge: true,
       minimumReleaseAge: "3 days",

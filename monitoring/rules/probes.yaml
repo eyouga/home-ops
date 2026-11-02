@@ -8,10 +8,24 @@ spec:
   groups:
     - name: probes
       rules:
+        # CVE-2026-115560 has no fix yet, and Nextcloud leans on a setting until it does
+        # (MIGRATION.md §10). This asks PHP's changelog hourly, so over a range: a sample
+        # an hour old is stale to a plain query. Remove it, its target and its module once
+        # the fix runs here. A changelog that moved would fire it too.
+        - alert: PhpFixPublished
+          expr: max_over_time(probe_success{target="php-fix-watch"}[5m]) == 0
+          labels:
+            severity: warning
+          annotations:
+            summary: "TEST, not real: PHP's changelog names CVE-2026-115560, the fix is out"
+            description: >-
+              Check that Nextcloud gets it: `kubectl -n nextcloud exec deploy/nextcloud -c app --
+              php -v` against the changelog, once the image is rebuilt. Keep
+              session.upload_progress.enabled off until then.
         # Longer than a Recreate rollout or a patch's `occ upgrade`, so a normal
         # update doesn't page; the rung scripts run with someone watching anyway.
         - alert: RouteProbeFailing
-          expr: probe_success == 0
+          expr: probe_success{target!="php-fix-watch"} == 0
           for: 10m
           labels:
             severity: warning
@@ -22,7 +36,7 @@ spec:
               of the route stopped answering: if the route now answers 200, it's open.
         # cert-manager renews at 30 days left, so 14 means renewals have failed for two weeks.
         - alert: RouteCertificateExpiring
-          expr: probe_ssl_earliest_cert_expiry - time() < 14 * 86400
+          expr: probe_ssl_earliest_cert_expiry{target!="php-fix-watch"} - time() < 14 * 86400
           for: 1h
           labels:
             severity: warning
