@@ -1,36 +1,39 @@
-# Bulk data on tank, mounted from the host (datasets in the dotfiles'
-# zfs.nix). Static PVs, so the pods stay on Pod Security `restricted` (a
-# hostPath in the pod spec would not). type: Directory: until tank is
-# imported the path is missing, so the pod waits instead of writing into
-# the wiped root. Retain: deleting these never touches the files. The
-# capacity is a label; nothing enforces it.
+# Bulk data on tank: the one `tank/data` dataset (dotfiles' disko-config.nix,
+# /srv/data), torrents/<category> and media/{films,series,music} side by side.
+# Static PV, so the pods stay on Pod Security `restricted` (a hostPath in the
+# pod spec would not). type: Directory: until tank is imported the path is
+# missing, so the pod waits instead of writing into the wiped root. Retain:
+# deleting these never touches the files. The capacity is a label; nothing
+# enforces it.
+# Mounted whole, as one /data volume: an import from data/torrents into
+# data/media is then a hardlink (link() fails across mounts, EXDEV).
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: transmission-torrents
+  name: transmission-tank-data
 spec:
   capacity:
-    storage: 1Ti
+    storage: 2Ti
   accessModes: [ReadWriteMany]
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   claimRef:
     namespace: transmission
-    name: torrents
+    name: tank-data
   hostPath:
-    path: /srv/torrents
+    path: /srv/data
     type: Directory
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: torrents
+  name: tank-data
   namespace: transmission
 spec:
   accessModes: [ReadWriteMany]
   storageClassName: ""
-  volumeName: transmission-torrents
+  volumeName: transmission-tank-data
   resources:
     requests:
-      storage: 1Ti
+      storage: 2Ti

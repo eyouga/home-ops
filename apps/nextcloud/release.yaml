@@ -336,11 +336,13 @@ spec:
         advancedMounts:
           redis:
             app: [{path: /data}]
-      # storage.yaml. The External Storage mounts (media, torrents) are
-      # read-only: the *arrs own the library and Transmission seeds from
-      # /torrents, so a rename or delete from Nextcloud would break them. The
-      # kernel enforces it here; each mount's `readonly` option in Nextcloud
-      # (occ files_external:option) only hides the UI's write actions.
+      # storage.yaml. Only tank/data's torrents/ is an External Storage
+      # mount ("Torrents"); the library (media/) is Jellyfin's, and its files
+      # are mostly hardlinks of these anyway ("Media" dropped 2026-11-02).
+      # Read-only: Transmission seeds from it, so a rename or delete from
+      # Nextcloud would break seeding. The kernel enforces it here; the
+      # mount's `readonly` option in Nextcloud (occ files_external:option)
+      # only hides the UI's write actions.
       data:
         existingClaim: data
         advancedMounts:
@@ -350,39 +352,12 @@ spec:
             app: [{path: /var/www/html/data}]
           previews:
             app: [{path: /var/www/html/data}]
-      films:
-        existingClaim: films
+      tank-data:
+        existingClaim: tank-data
         advancedMounts:
           nextcloud:
-            app: [{path: /media/films, readOnly: true}]
+            app: [{path: /torrents, subPath: torrents, readOnly: true}]
           cron:
-            app: [{path: /media/films, readOnly: true}]
+            app: [{path: /torrents, subPath: torrents, readOnly: true}]
           previews:
-            app: [{path: /media/films, readOnly: true}]
-      series:
-        existingClaim: series
-        advancedMounts:
-          nextcloud:
-            app: [{path: /media/series, readOnly: true}]
-          cron:
-            app: [{path: /media/series, readOnly: true}]
-          previews:
-            app: [{path: /media/series, readOnly: true}]
-      music:
-        existingClaim: music
-        advancedMounts:
-          nextcloud:
-            app: [{path: /media/music, readOnly: true}]
-          cron:
-            app: [{path: /media/music, readOnly: true}]
-          previews:
-            app: [{path: /media/music, readOnly: true}]
-      torrents:
-        existingClaim: torrents
-        advancedMounts:
-          nextcloud:
-            app: [{path: /torrents, readOnly: true}]
-          cron:
-            app: [{path: /torrents, readOnly: true}]
-          previews:
-            app: [{path: /torrents, readOnly: true}]
+            app: [{path: /torrents, subPath: torrents, readOnly: true}]

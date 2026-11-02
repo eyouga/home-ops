@@ -3,9 +3,10 @@
 # home-operations builds from the develop channel: pin only builds that are
 # also an upstream stable release. Config from the rescued
 # /mnt/Bim/apps/Radarr/config; uid 568
-# like on TrueNAS, so the restored files need no chown. Paths inside the
-# container match the old ones (/media/films, /torrents), so the database's
-# root folder and the download client's save paths still hold.
+# like on TrueNAS, so the restored files need no chown. Since the one-dataset move
+# (Phase 6, 2026-11-02) torrents and the library share one /data volume
+# (data/torrents/<category>, data/media/films), so imports are hardlinks; the
+# root folder and every path in the database were moved there by API.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -82,11 +83,7 @@ spec:
         globalMounts:
           - path: /tmp
       # storage.yaml
-      films:
-        existingClaim: films
+      tank-data:
+        existingClaim: tank-data
         globalMounts:
-          - path: /media/films
-      torrents:
-        existingClaim: torrents
-        globalMounts:
-          - path: /torrents
+          - path: /data

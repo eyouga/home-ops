@@ -1,5 +1,5 @@
 {
-  "download_dir": "/torrents",
+  "download_dir": "/data/torrents",
   "incomplete_dir_enabled": false,
   "rename_partial_files": true,
   "start_added_torrents": true,

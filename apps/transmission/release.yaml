@@ -8,9 +8,10 @@
 # env only when such variables exist; there are none here.
 #
 # Choices in settings.json, carried over from qBittorrent unless said:
-# - everything saves under /torrents (default); the *arrs add their category
-#   subdirectory (/torrents/tv-sonarr, radarr, lidarr, prowlarr), the layout
-#   qBittorrent's categories made. No incomplete dir, as before.
+# - everything saves under /data/torrents (default); the *arrs add their
+#   category subdirectory (tv-sonarr, radarr, lidarr, prowlarr), the layout
+#   qBittorrent's categories made. /data is the one tank/data volume the
+#   *arrs mount too, so their imports are hardlinks. No incomplete dir.
 # - peers on 6881 (the .203 LoadBalancer below), no UPnP/NAT-PMP, no LPD
 #   (nothing to discover from a pod network).
 # - the old bandwidth schedule: 500 kB/s down / 50 kB/s up from 06:00 to
@@ -131,7 +132,7 @@ spec:
         globalMounts:
           - path: /tmp
       # storage.yaml
-      torrents:
-        existingClaim: torrents
+      tank-data:
+        existingClaim: tank-data
         globalMounts:
-          - path: /torrents
+          - path: /data

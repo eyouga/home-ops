@@ -1,10 +1,11 @@
 # Bulk data on tank, mounted from the host (datasets in the dotfiles'
-# zfs.nix), as static PVs like the other apps' (Pod Security `restricted`,
-# type: Directory so a pod waits for tank instead of writing into the wiped
-# root, Retain). `data` is Nextcloud's datadirectory (/var/www/html/data,
-# 568:568 770 as on TrueNAS). films/series/music/torrents back the two
-# External Storage mounts, "Media" (/media) and "Torrents" (/torrents), at
-# the old paths. The capacity is a label; nothing enforces it.
+# disko-config.nix), as static PVs like the other apps' (Pod Security
+# `restricted`, type: Directory so a pod waits for tank instead of writing
+# into the wiped root, Retain). `data` is Nextcloud's datadirectory
+# (/var/www/html/data, 568:568 770 as on TrueNAS). `tank-data` is the one
+# torrents + media dataset (/srv/data); release.yaml mounts only its
+# torrents/, read-only at the old path, behind the External Storage mount
+# "Torrents" (/torrents). The capacity is a label; nothing enforces it.
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -39,119 +40,29 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: nextcloud-films
+  name: nextcloud-tank-data
 spec:
   capacity:
-    storage: 1Ti
+    storage: 2Ti
   accessModes: [ReadWriteMany]
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   claimRef:
     namespace: nextcloud
-    name: films
+    name: tank-data
   hostPath:
-    path: /srv/media/films
+    path: /srv/data
     type: Directory
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: films
+  name: tank-data
   namespace: nextcloud
 spec:
   accessModes: [ReadWriteMany]
   storageClassName: ""
-  volumeName: nextcloud-films
+  volumeName: nextcloud-tank-data
   resources:
     requests:
-      storage: 1Ti
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: nextcloud-series
-spec:
-  capacity:
-    storage: 1Ti
-  accessModes: [ReadWriteMany]
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
-  claimRef:
-    namespace: nextcloud
-    name: series
-  hostPath:
-    path: /srv/media/series
-    type: Directory
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: series
-  namespace: nextcloud
-spec:
-  accessModes: [ReadWriteMany]
-  storageClassName: ""
-  volumeName: nextcloud-series
-  resources:
-    requests:
-      storage: 1Ti
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: nextcloud-music
-spec:
-  capacity:
-    storage: 1Ti
-  accessModes: [ReadWriteMany]
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
-  claimRef:
-    namespace: nextcloud
-    name: music
-  hostPath:
-    path: /srv/media/music
-    type: Directory
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: music
-  namespace: nextcloud
-spec:
-  accessModes: [ReadWriteMany]
-  storageClassName: ""
-  volumeName: nextcloud-music
-  resources:
-    requests:
-      storage: 1Ti
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: nextcloud-torrents
-spec:
-  capacity:
-    storage: 1Ti
-  accessModes: [ReadWriteMany]
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
-  claimRef:
-    namespace: nextcloud
-    name: torrents
-  hostPath:
-    path: /srv/torrents
-    type: Directory
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: torrents
-  namespace: nextcloud
-spec:
-  accessModes: [ReadWriteMany]
-  storageClassName: ""
-  volumeName: nextcloud-torrents
-  resources:
-    requests:
-      storage: 1Ti
+      storage: 2Ti
