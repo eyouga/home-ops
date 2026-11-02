@@ -45,7 +45,7 @@ spec:
           app:
             image: &image
               repository: docker.io/library/nextcloud
-              tag: 33.0.10-fpm@sha256:799dc774546d0501608851adca0db29f6fb4f1d81f108cabd4efa51cd3062b77
+              tag: 34.0.5-fpm@sha256:88a938ba385807e6ad91584eeafbc026eaaa4c4c795d8b19b315f11c32aff6ab
             env: &env
               TZ: Europe/Paris
               # Used by the image's nextcloud.ini (the old chart's values).
