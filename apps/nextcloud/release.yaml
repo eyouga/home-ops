@@ -1,6 +1,6 @@
 # Nextcloud, restored at the old server's 28.0.2 (Phase 5) on the official
 # fpm image (tccr.io's is gone), then stepped one major at a time to current
-# (Phase 6, 2026-11-02: 28.0.14 → 29 → … → 34). On a new image the
+# (Phase 6, 2026-11-02: 28.0.14 → 29 → … → 35). On a new image the
 # entrypoint copies the code into the nextcloud-html PVC and runs `occ
 # upgrade`; it refuses to skip a major. Per rung: snapshot fast/k8s +
 # fast/k8s-db, CronJobs suspended, bump, then app updates, missing indices,
@@ -167,7 +167,7 @@ spec:
         cronjob:
           # true while a major upgrade runs: a cron.php running while the
           # entrypoint swaps the code could break halfway.
-          suspend: &cronSuspend true
+          suspend: &cronSuspend false
           schedule: "*/5 * * * *"
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1

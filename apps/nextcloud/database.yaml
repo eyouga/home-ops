@@ -1,7 +1,7 @@
 # Nextcloud's Postgres, in the `databases` namespace like every CNPG cluster (its
-# volume lands on fast/k8s-db). The old one was PG 16.0; Phase 5 restores
-# its dump into PG 16.15 (MIGRATION.md: Nextcloud 28 supports nothing
-# newer). The `nextcloud` role's password comes from
+# volume lands on fast/k8s-db). Restored from the old PG 16 in Phase 5;
+# PG 18 since Phase 6 (CNPG's in-place major upgrade: changing the image's
+# major triggers pg_upgrade). The `nextcloud` role's password comes from
 # db-credentials.sops.yaml, the same value as the app's credentials.sops.yaml,
 # not from CNPG's generated `nextcloud-app` Secret (it can't cross namespaces).
 apiVersion: postgresql.cnpg.io/v1
