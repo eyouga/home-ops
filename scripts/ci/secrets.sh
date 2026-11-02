@@ -6,11 +6,10 @@ source "$(dirname "$0")/lib.sh"
 
 # YAML files, parsed: a comment or a CRD's description mentioning Secret is fine.
 while read -r f; do
-  if [ -n "$(yq 'select(.kind == "Secret") | .kind' "$f")" ]; then
-    fail "$f holds a kind: Secret outside a *.sops.yaml"
-  fi
-  if [ -n "$(yq 'select(has("secretGenerator")) | .kind' "$f" 2>/dev/null)" ]; then
-    fail "$f has a secretGenerator: the Secret it makes would come from plaintext"
+  if ! found=$(yq 'select(tag == "!!map") | select(.kind == "Secret" or has("secretGenerator")) | .kind // "secretGenerator"' "$f"); then
+    fail "$f doesn't parse"
+  elif [ -n "$found" ] && [ "$found" != "---" ]; then
+    fail "$f holds a Secret or a secretGenerator outside a *.sops.yaml: $found"
   fi
 done < <(git ls-files '*.yaml' '*.yml' ':!*.sops.yaml' ':!.sops.yaml' "$generated")
 
