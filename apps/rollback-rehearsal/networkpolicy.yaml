@@ -1,9 +1,0 @@
-# Temporary, like all of this directory: nothing reaches it, it reaches nothing.
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: default-deny
-  namespace: rollback-rehearsal
-spec:
-  podSelector: {}
-  policyTypes: [Ingress, Egress]
