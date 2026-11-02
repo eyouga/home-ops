@@ -22,14 +22,11 @@
   // to 03:30). Flux applies a merge within the hour.
   automergeSchedule: ["* 9-18 * * *"],
 
-  enabledManagers: ["flux", "helm-values", "custom.regex", "github-actions", "nix"],
+  enabledManagers: ["flux", "custom.regex", "github-actions", "nix"],
   ignorePaths: ["**/*.sops.yaml", "monitoring/dashboards/**"],
   flux: {
+    // Also reads the repository + tag@digest pairs in each HelmRelease's values.
     managerFilePatterns: ["/^(apps|infrastructure|monitoring|clusters)/.+\\.yaml$/"],
-  },
-  "helm-values": {
-    // app-template's values live in the HelmRelease; repository + tag@digest.
-    managerFilePatterns: ["/^(apps|infrastructure|monitoring)/.+\\.yaml$/"],
   },
   nix: { enabled: true },
   // flake.nix holds CI's tools only: see the last rule.
