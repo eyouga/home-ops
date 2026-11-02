@@ -34,6 +34,20 @@ spec:
               kubernetes.io/metadata.name: prowlarr
       ports:
         - { port: 8989, protocol: TCP }
+    # Seerr sends requests.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: seerr
+      ports:
+        - { port: 8989, protocol: TCP }
+    # Recyclarr syncs the quality profile.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: recyclarr
+      ports:
+        - { port: 8989, protocol: TCP }
   egress:
     # kube-dns, for the names below and the internet.
     - to:

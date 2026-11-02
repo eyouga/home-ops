@@ -30,6 +30,7 @@ spec:
             - ip: 192.168.1.201
               hostnames:
                 - jellyfin.eyouga.fr
+                - seerr.eyouga.fr
                 - sonarr.eyouga.fr
                 - radarr.eyouga.fr
                 - lidarr.eyouga.fr

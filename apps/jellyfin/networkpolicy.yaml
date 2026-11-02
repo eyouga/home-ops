@@ -29,6 +29,13 @@ spec:
               kubernetes.io/metadata.name: traefik
       ports:
         - { port: 8096, protocol: TCP }
+    # Seerr signs users in and reads the libraries.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: seerr
+      ports:
+        - { port: 8096, protocol: TCP }
   egress:
     # kube-dns, for the internet below.
     - to:

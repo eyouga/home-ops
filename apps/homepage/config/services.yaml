@@ -7,6 +7,11 @@
         href: https://jellyfin.eyouga.fr
         description: Films, séries, musique
         siteMonitor: https://jellyfin.eyouga.fr/health
+    - Seerr:
+        icon: seerr.png
+        href: https://seerr.eyouga.fr
+        description: Demander un film ou une série
+        siteMonitor: https://seerr.eyouga.fr/api/v1/settings/public
 
 - Téléchargements:
     - Sonarr:
