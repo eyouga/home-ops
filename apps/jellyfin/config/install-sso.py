@@ -28,6 +28,15 @@ if not os.path.isdir(TARGET):
 
 with open("/files/SSO-Auth.xml") as f:
     xml = f.read().replace("__OIDC_CLIENT_SECRET__", os.environ["OIDC_CLIENT_SECRET"])
+# Which SSO identity is which account is the one thing the plugin writes here, and
+# SSO-only login only covers linked accounts: it has to survive this rewrite.
+try:
+    with open("/config/plugins/configurations/SSO-Auth.xml") as f:
+        links = re.search(r"<CanonicalLinks>.*?</CanonicalLinks>", f.read(), re.S)
+except FileNotFoundError:
+    links = None
+if links:
+    xml = xml.replace("<CanonicalLinks />", links.group(0))
 fd = os.open("/config/plugins/configurations/SSO-Auth.xml", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
 with os.fdopen(fd, "w") as f:
     f.write(xml)

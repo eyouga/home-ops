@@ -21,6 +21,7 @@
           <LogoutUrl>https://auth.eyouga.fr/logout</LogoutUrl>
           <SchemeOverride>https</SchemeOverride>
           <UseClientSecretBasic>true</UseClientSecretBasic>
+          <CanonicalLinks />
         </PluginConfiguration>
       </value>
     </item>
