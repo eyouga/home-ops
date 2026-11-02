@@ -81,7 +81,7 @@ spec:
             fail_if_not_ssl: true
             no_follow_redirects: true
             valid_status_codes: [200]
-            fail_if_body_matches_regexp: ["ChangeLog"]
+            fail_if_body_matches_regexp: ["CVE-2026-115560"]
         login_gate:
           <<: *http
           http:
@@ -102,7 +102,7 @@ spec:
         scrapeTimeout: 30s
       targets:
         # Not a route, so scripts/ci/probes.sh leaves it out.
-        - { name: php-fix-watch, url: "https://www.php.net/ChangeLog-8.php", module: php_fix_unreleased, interval: 60s, scrapeTimeout: 30s }
+        - { name: php-fix-watch, url: "https://www.php.net/ChangeLog-8.php", module: php_fix_unreleased, interval: 1h, scrapeTimeout: 30s }
         - { name: authelia, url: "https://auth.eyouga.fr/api/health", module: http_ok }
         - { name: authelia-login, url: "https://auth.eyouga.fr/", module: login_page }
         - { name: jellyfin, url: "https://jellyfin.eyouga.fr/health", module: http_ok }

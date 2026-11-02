@@ -13,11 +13,11 @@ spec:
         # an hour old is stale to a plain query. Remove it, its target and its module once
         # the fix runs here. A changelog that moved would fire it too.
         - alert: PhpFixPublished
-          expr: max_over_time(probe_success{target="php-fix-watch"}[5m]) == 0
+          expr: max_over_time(probe_success{target="php-fix-watch"}[3h]) == 0
           labels:
             severity: warning
           annotations:
-            summary: "TEST, not real: PHP's changelog names CVE-2026-115560, the fix is out"
+            summary: "PHP's changelog names CVE-2026-115560: the fix is out"
             description: >-
               Check that Nextcloud gets it: `kubectl -n nextcloud exec deploy/nextcloud -c app --
               php -v` against the changelog, once the image is rebuilt. Keep
