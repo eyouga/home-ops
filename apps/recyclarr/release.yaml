@@ -1,0 +1,75 @@
+# Recyclarr: config/recyclarr.yml synced into Sonarr and Radarr once a day. A
+# one-shot (the image's entrypoint runs `recyclarr <args>`; without args it
+# would start its own cron), so no daemon, no state: /config is an emptyDir and
+# it re-clones TRaSH's guides each run. Runs as 568 with a read-only root.
+#
+# The sleep: k3s's kube-router admits a new pod's traffic about a second after
+# it starts, and a short-lived job would otherwise lose that race (the same
+# wait as Nextcloud's CronJobs). A failed run fires KubeJobFailed → ntfy.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: recyclarr
+  namespace: recyclarr
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      recyclarr:
+        type: cronjob
+        cronjob:
+          schedule: "30 4 * * *"
+          concurrencyPolicy: Forbid
+          successfulJobsHistory: 1
+          failedJobsHistory: 3
+          backoffLimit: 0
+        pod:
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 568
+            runAsGroup: 568
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: ghcr.io/recyclarr/recyclarr
+              tag: 8.8.1@sha256:3e9c41b9ec29bbf65fe846864058730d321a21f7695d8c0d9437b73e34d50ad9
+            command: [bash, -c, "sleep 5 && exec recyclarr sync"]
+            env:
+              TZ: Europe/Paris
+              HOME: /tmp
+            envFrom:
+              # RADARR_API_KEY, SONARR_API_KEY
+              - secretRef:
+                  name: recyclarr-secrets
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 1Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+
+    persistence:
+      config:
+        type: emptyDir
+        globalMounts:
+          - path: /config
+      settings:
+        type: configMap
+        name: recyclarr-config
+        globalMounts:
+          - { path: /config/recyclarr.yml, subPath: recyclarr.yml, readOnly: true }
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
