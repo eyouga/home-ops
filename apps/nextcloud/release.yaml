@@ -1,9 +1,12 @@
-# Nextcloud 28.0.2 (Phase 5: restore first, upgrade one major at a time in
-# Phase 6). The old image, tccr.io's nextcloud-fpm, is gone; the official
-# 28.0.2-fpm is the same release (version.php 28.0.2.5 on both, so its
-# entrypoint copies and upgrades nothing). The code is the restored
-# nextcloud-html PVC, config.php the restored nextcloud-config PVC, the files
-# are on tank (storage.yaml). Everything runs as 568 like on TrueNAS, so
+# Nextcloud, restored at the old server's 28.0.2 (Phase 5) on the official
+# fpm image (tccr.io's is gone), then stepped one major at a time to current
+# (Phase 6, 2026-11-02: 28.0.14 → 29 → … → 34). On a new image the
+# entrypoint copies the code into the nextcloud-html PVC and runs `occ
+# upgrade`; it refuses to skip a major. Per rung: snapshot fast/k8s +
+# fast/k8s-db, CronJobs suspended, bump, then app updates, missing indices,
+# the expensive repair, and a pod restart so notify_push runs the updated
+# binary (~/def-jam-rescue/tools/phase6-nextcloud-rung.sh). config.php is
+# the restored nextcloud-config PVC, the files are on tank (storage.yaml). Everything runs as 568 like on TrueNAS, so
 # nothing is chown-ed (the image's www-data is 33).
 #
 # The old release's parts, and what became of them:
@@ -159,9 +162,9 @@ spec:
       cron:
         type: cronjob
         cronjob:
-          # Suspended while the majors are stepped up (Phase 6): a cron.php
-          # running while the entrypoint swaps the code could break halfway.
-          suspend: &cronSuspend true
+          # true while a major upgrade runs: a cron.php running while the
+          # entrypoint swaps the code could break halfway.
+          suspend: &cronSuspend false
           schedule: "*/5 * * * *"
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
