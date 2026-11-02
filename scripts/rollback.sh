@@ -242,10 +242,11 @@ print(json.dumps({"apiVersion":"v1","kind":"Pod","metadata":{"name":name,"namesp
 # The refusals come first, before the delete: an empty snapshot, files this uid can't keep.
 copy_script='set -euo pipefail
 [ -n "$(ls -A /snapshot)" ] || { echo "the snapshot is empty"; exit 3; }
-foreign=$(find /snapshot ! -uid "$(id -u)" | wc -l)
+foreign=$(find /snapshot -mindepth 1 ! -uid "$(id -u)" | wc -l)
 [ "$foreign" = 0 ] || { echo "$foreign entries belong to another uid: this pod would change their owner"; exit 4; }
 find /live -mindepth 1 -delete
-cp -a /snapshot/. /live/
+# The contents, not the top directory: that belongs to root, and this pod does not.
+find /snapshot -mindepth 1 -maxdepth 1 -exec cp -a -t /live {} +
 different=$(diff -rq --no-dereference /snapshot /live | wc -l)
 [ "$different" = 0 ] || { echo "$different entries differ after the copy"; exit 5; }
 echo "  $(find /live | wc -l) entries, $(du -sh /live | cut -f1), identical to the snapshot"'
@@ -256,8 +257,8 @@ for p in "${pairs[@]}"; do
   step="copying back $live"; say "$step"
   volume live "$i" "$live"
   volume snap "$i" "$from"
-  # Whoever owns the snapshot's copy is who the app writes as. Stat needs no rights.
-  uid=$(run "owner-$i" 65534 "$i" 0 'stat -c %u /snapshot' | tail -1)
+  # Who owns what's in it is who the app writes as. The top directory is the provisioner's.
+  uid=$(run "owner-$i" 65534 "$i" 0 "find /snapshot -mindepth 1 -maxdepth 1 -printf '%U\n' | grep -vx 0 | sort | uniq -c | sort -rn | sed -n '1s/.* //p'" | tail -1)
   [[ $uid =~ ^[1-9][0-9]*$ ]] || { step="reading the owner of $from: '$uid'"; false; }
   run "copy-$i" "$uid" "$i" 1 "$copy_script"
 done
