@@ -105,7 +105,7 @@ spec:
           nginx:
             image:
               repository: docker.io/nginxinc/nginx-unprivileged
-              tag: 1.25.4@sha256:fc4bf78c004581ee6014d9fee0d6825854474c82918465ecb731cc4006a2dad5
+              tag: 1.30.6@sha256:ec0f7ecb1fbd84959ac114e65fb36074ffc97d4d51db0f18ee925162d889dcef
             probes:
               liveness: &status
                 enabled: true
