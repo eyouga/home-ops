@@ -1,0 +1,204 @@
+// Renovate's only instructions for this repo. Hosted GitHub App today, a file
+// anyone's Renovate can read tomorrow. MIGRATION.md §10 is the reasoning.
+//
+// Everything is a PR unless a rule below says otherwise. Later rules win.
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended", "helpers:pinGitHubActionDigests"],
+  timezone: "Europe/Paris",
+  semanticCommits: "disabled",
+  labels: ["renovate"],
+  prHourlyLimit: 4,
+  prConcurrentLimit: 20,
+
+  // Renovate merges by itself, after seeing every check green on the commit, not
+  // only the required one. GitHub's native auto-merge would look at required
+  // checks alone.
+  automerge: false,
+  platformAutomerge: false,
+  automergeType: "pr",
+  automergeStrategy: "squash",
+  // When someone is awake to get the phone alert, and clear of the backups (23:30
+  // to 03:30). Flux applies a merge within the hour.
+  automergeSchedule: ["* 9-18 * * *"],
+
+  enabledManagers: ["flux", "helm-values", "custom.regex", "github-actions", "nix"],
+  ignorePaths: ["**/*.sops.yaml", "monitoring/dashboards/**"],
+  flux: {
+    managerFilePatterns: ["/^(apps|infrastructure|monitoring|clusters)/.+\\.yaml$/"],
+  },
+  "helm-values": {
+    // app-template's values live in the HelmRelease; repository + tag@digest.
+    managerFilePatterns: ["/^(apps|infrastructure|monitoring)/.+\\.yaml$/"],
+  },
+  nix: { enabled: true },
+  // flake.nix holds CI's tools only: see the last rule.
+  lockFileMaintenance: {
+    enabled: true,
+    schedule: ["on saturday"],
+    automerge: true,
+  },
+
+  customManagers: [
+    {
+      // CNPG's Cluster.spec.imageName: no chart, so no other manager sees it.
+      customType: "regex",
+      description: "Postgres in each CNPG Cluster",
+      managerFilePatterns: ["/^apps/[^/]+/database\\.yaml$/"],
+      matchStrings: ["imageName: (?<depName>[^:\\s]+):(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[0-9a-f]{64})"],
+      datasourceTemplate: "docker",
+      versioningTemplate: "docker",
+    },
+    {
+      customType: "regex",
+      description: "Jellyfin's SSO plugin",
+      managerFilePatterns: ["/^apps/jellyfin/config/install-sso\\.py$/"],
+      matchStrings: ['VERSION = "(?<currentValue>[^"]+)"'],
+      depNameTemplate: "MaxRink/jellyfin-plugin-sso",
+      datasourceTemplate: "github-releases",
+      extractVersionTemplate: "^v(?<version>.+)$",
+      versioningTemplate: "loose",
+    },
+    {
+      customType: "regex",
+      description: "Home Assistant's auth_oidc",
+      managerFilePatterns: ["/^apps/home-assistant/release\\.yaml$/"],
+      matchStrings: ['VERSION = "(?<currentValue>[^"]+)"'],
+      depNameTemplate: "christiaangoossens/hass-oidc-auth",
+      datasourceTemplate: "github-releases",
+      extractVersionTemplate: "^v(?<version>.+)$",
+    },
+    {
+      customType: "regex",
+      description: "The CRD schemas CI validates against",
+      managerFilePatterns: ["/^scripts/ci/validate\\.sh$/"],
+      matchStrings: ["# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) currentValue=(?<currentValue>\\S+)\\n[a-z_]+=(?<currentDigest>[0-9a-f]{40})"],
+    },
+  ],
+
+  packageRules: [
+    // ---- The rest of the file only sorts these; nothing here merges anything.
+    {
+      description: "flake.nix: only its lock file, weekly, not each input",
+      matchManagers: ["nix"],
+      matchUpdateTypes: ["major", "minor", "patch", "digest", "pin", "pinDigest", "rollback", "bump"],
+      enabled: false,
+    },
+    {
+      description: "A rebuilt image under an unchanged tag: one PR a month for all of them",
+      matchDatasources: ["docker"],
+      matchUpdateTypes: ["digest"],
+      groupName: "rebuilt images",
+      schedule: ["on the first day of the month"],
+    },
+    {
+      description: "One PR for one chart used by every app",
+      matchPackageNames: ["ghcr.io/bjw-s-labs/helm/app-template"],
+      groupName: "app-template",
+    },
+    {
+      description: "Every cluster and the dumps move together (MIGRATION.md §5)",
+      matchPackageNames: ["ghcr.io/cloudnative-pg/postgresql"],
+      groupName: "postgres",
+      prBodyNotes: ["Clusters and `apps/pg-dump` together; a minor restarts each database."],
+    },
+    {
+      description: "Traefik's chart states the Gateway API version it wants",
+      matchPackageNames: ["kubernetes-sigs/gateway-api"],
+      prBodyNotes: ["Must be the version Traefik's chart asks for: check its `Chart.yaml` before merging."],
+    },
+
+    // ---- Automatic: patches and digests of what faces the world, after 3 days in
+    // case a release gets pulled, and when every check is green.
+    {
+      description: "Security-sensitive tier",
+      matchPackageNames: ["ghcr.io/authelia/authelia", "docker.io/library/nextcloud", "ghcr.io/jellyfin/jellyfin", "traefik", "cert-manager"],
+      matchUpdateTypes: ["patch", "digest"],
+      groupName: null,
+      schedule: ["at any time"],
+      automerge: true,
+      minimumReleaseAge: "3 days",
+    },
+    {
+      // Jellyfin 12's tags are X.Y: its Y is the bugfix number.
+      description: "Jellyfin's patches look like minors",
+      matchPackageNames: ["ghcr.io/jellyfin/jellyfin"],
+      matchUpdateTypes: ["minor"],
+      automerge: true,
+      minimumReleaseAge: "3 days",
+    },
+
+    // ---- By hand, after reading upstream.
+    {
+      description: "Rule 5: home-operations builds develop as well as stable",
+      matchPackageNames: ["ghcr.io/home-operations/**"],
+      labels: ["renovate", "check-by-hand"],
+      prBodyNotes: ["**Rule 5:** this image also builds `develop`. Merge only if the build's commit is an upstream **stable** release (see the comment at the top of the app's `release.yaml`), and update that comment."],
+    },
+    {
+      description: "SSO plugins: version and SHA-256 move together",
+      matchPackageNames: ["MaxRink/jellyfin-plugin-sso", "christiaangoossens/hass-oidc-auth"],
+      labels: ["renovate", "check-by-hand"],
+      prBodyNotes: ["**Red until the hash is updated:** `plugin-pins.sh` prints what the new URL serves. Compare it with upstream's release, check the compatibility (MIGRATION.md §5), and commit `SHA256` to this branch."],
+    },
+
+    // ---- Never automatic, and drafts, so they can't be merged by a tired click:
+    // each has a script or a runbook that does what a tag bump can't.
+    {
+      description: "Nextcloud major",
+      matchPackageNames: ["docker.io/library/nextcloud"],
+      matchUpdateTypes: ["major"],
+      draftPR: true,
+      labels: ["renovate", "rung"],
+      prBodyNotes: ["**Don't merge.** `scripts/nextcloud-rung.sh <ver> <digest>`, one major at a time, CronJobs suspended first (MIGRATION.md §5). This PR closes by itself once `main` has moved."],
+    },
+    {
+      description: "Forgejo major",
+      matchPackageNames: ["codeberg.org/forgejo/forgejo"],
+      matchUpdateTypes: ["major"],
+      draftPR: true,
+      labels: ["renovate", "rung"],
+      prBodyNotes: ["**Don't merge.** One rung by hand (MIGRATION.md §5): read the notes, snapshot, `forgejo manager flush-queues` before, `forgejo doctor check --all` after."],
+    },
+    {
+      description: "Postgres major",
+      matchPackageNames: ["ghcr.io/cloudnative-pg/postgresql"],
+      matchUpdateTypes: ["major"],
+      draftPR: true,
+      labels: ["renovate", "rung"],
+      prBodyNotes: ["**Don't merge.** `scripts/postgres-major.sh <cluster> <tag@digest>`, cluster by cluster; check the apps' supported majors first."],
+    },
+    {
+      description: "Home Assistant jump",
+      matchPackageNames: ["homeassistant/home-assistant", "docker.io/homeassistant/home-assistant"],
+      matchUpdateTypes: ["major"],
+      draftPR: true,
+      labels: ["renovate", "rung"],
+      prBodyNotes: ["**Don't merge.** `scripts/home-assistant-rung.sh <ver> <digest>`, ~6-month hops. Compare its command with the image's `/etc/services.d/home-assistant/run` first."],
+    },
+    {
+      description: "kube-prometheus-stack and the CRD tag it needs",
+      matchPackageNames: ["kube-prometheus-stack", "prometheus-operator/prometheus-operator"],
+      groupName: "kube-prometheus-stack",
+      draftPR: true,
+      labels: ["renovate", "rung"],
+      prBodyNotes: ["**By hand.** The tag in `clusters/def-jam/infrastructure.yaml` must be the operator version this chart runs, and CRDs go first: push the tag, wait for `infra-crds-prometheus`, then the chart."],
+    },
+
+    // ---- CI's own tools can't reach the cluster, and CI has no secrets to steal.
+    {
+      description: "CI tooling: automatic, and the harmless proof the path works",
+      matchManagers: ["github-actions"],
+      groupName: "CI actions",
+      schedule: ["on saturday"],
+      automerge: true,
+      minimumReleaseAge: "3 days",
+    },
+    {
+      description: "The CRD schemas CI validates against",
+      matchPackageNames: ["https://github.com/datreeio/CRDs-catalog"],
+      schedule: ["on saturday"],
+      automerge: true,
+    },
+  ],
+}

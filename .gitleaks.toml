@@ -1,0 +1,7 @@
+# gitleaks' default rules, without the values SOPS has already encrypted.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "SOPS ciphertext and metadata"
+regexes = ['''ENC\[AES256_GCM,''', '''-----BEGIN AGE ENCRYPTED FILE-----''']
