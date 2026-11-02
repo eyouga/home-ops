@@ -40,7 +40,7 @@ spec:
           app:
             image:
               repository: homeassistant/home-assistant
-              tag: 2025.11.3@sha256:f971850a6ec1fb5c5fd4e1748058e9e1f589aaf0da933b8d88bb5dee03f5b5e8
+              tag: 2026.5.4@sha256:ceb1202133a5a036e8b03e20a10eb113186cc2f871968323c6fc6c3fc4205716
             workingDir: /config
             command: [python3, -m, homeassistant, --config, /config]
             env:
