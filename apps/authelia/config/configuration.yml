@@ -6,6 +6,9 @@ default_2fa_method: totp
 
 server:
   address: tcp://:9091
+  # Only writes a file for Docker's HEALTHCHECK, on a read-only root here; the
+  # probes in release.yaml do this job.
+  disable_healthcheck: true
   endpoints:
     authz:
       forward-auth:
