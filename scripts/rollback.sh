@@ -79,7 +79,7 @@ pick() { # <dataset>: the snapshot to use on it
   else
     local name
     name=$(ssh "$host" zfs list -Hp -t snapshot -o name,creation -s creation "$1" \
-      | awk -v t="$cutoff" -F'\t' '$2 < t { print $1 }' | grep -vE '@(syncoid_|pre-rollback-)' | tail -1 | cut -d@ -f2)
+      | awk -v t="$cutoff" -F'\t' '$2 < t { print $1 }' | { grep -vE '@(syncoid_|pre-rollback-)' || true; } | tail -1 | cut -d@ -f2)
     [ -n "$name" ] || die "no snapshot of $1 before that point"
     echo "$name"
   fi
@@ -95,8 +95,10 @@ for v in "${volumes[@]+"${volumes[@]}"}"; do
 done
 [ -z "$cluster" ] || pairs+=("$root/databases/$cluster-1 $root/databases/.zfs/snapshot/$snap_db/$cluster-1")
 
-workloads=$(kubectl -n "$app" get deploy,statefulset -o go-template='{{range .items}}{{.kind}}/{{.metadata.name}} {{.spec.replicas}}{{"\n"}}{{end}}')
-crons=$(kubectl -n "$app" get cronjob -o go-template='{{range .items}}{{.metadata.name}} {{.spec.suspend}}{{"\n"}}{{end}}')
+# What to start again. A run that failed left everything at 0: it noted the real
+# values on the objects, so running this again still knows them.
+workloads=$(kubectl -n "$app" get deploy,statefulset -o go-template='{{range .items}}{{.kind}}/{{.metadata.name}} {{with index .metadata.annotations "rollback.eyouga.fr/replicas"}}{{.}}{{else}}{{.spec.replicas}}{{end}}{{"\n"}}{{end}}')
+crons=$(kubectl -n "$app" get cronjob -o go-template='{{range .items}}{{.metadata.name}} {{with index .metadata.annotations "rollback.eyouga.fr/suspend"}}{{.}}{{else}}{{.spec.suspend}}{{end}}{{"\n"}}{{end}}')
 
 say "Plan for $app, nothing has changed yet"
 echo "  safety snapshot  fast/k8s@pre-rollback-$app-$ts fast/k8s-db@pre-rollback-$app-$ts"
@@ -121,16 +123,18 @@ fi
 
 step="taking the safety snapshot"
 started=""
-on_error() {
+on_exit() {
+  [ "$?" != 0 ] || return 0
   echo >&2
   echo "rollback: FAILED while $step." >&2
   if [ -n "$started" ]; then
     echo "  The app stays down: HelmRelease $app is suspended and its workloads are at 0." >&2
     [ -z "$cluster" ] || echo "  Database $cluster may be hibernated: kubectl -n databases annotate cluster $cluster cnpg.io/hibernation=off --overwrite" >&2
-    echo "  What was live is in fast/k8s@pre-rollback-$app-$ts and fast/k8s-db@pre-rollback-$app-$ts, with $jobns's pods left to read." >&2
+    echo "  What was live is in fast/k8s@pre-rollback-$app-$ts and fast/k8s-db@pre-rollback-$app-$ts; $jobns's pods are left to read." >&2
+    echo "  Fix the cause and run this again: it's safe, and knows the replicas." >&2
   fi
 }
-trap on_error ERR
+trap on_exit EXIT
 
 say "$step"
 ssh "$host" "zfs snapshot fast/k8s@pre-rollback-$app-$ts fast/k8s-db@pre-rollback-$app-$ts"
@@ -140,11 +144,14 @@ step="stopping the app"; say "$step"
 flux suspend hr -n "$app" "$app" >/dev/null
 while read -r name suspended; do
   [ -n "$name" ] || continue
+  kubectl -n "$app" annotate cronjob "$name" "rollback.eyouga.fr/suspend=${suspended:-false}" --overwrite >/dev/null
   [ "$suspended" = true ] || kubectl -n "$app" patch cronjob "$name" --type=merge -p '{"spec":{"suspend":true}}' >/dev/null
 done <<<"$crons"
 kubectl -n "$app" get job -o name | xargs -r kubectl -n "$app" delete --wait=true >/dev/null
-while read -r name _; do
-  [ -z "$name" ] || kubectl -n "$app" scale "$name" --replicas=0 >/dev/null
+while read -r name replicas; do
+  [ -n "$name" ] || continue
+  kubectl -n "$app" annotate "$name" "rollback.eyouga.fr/replicas=$replicas" --overwrite >/dev/null
+  kubectl -n "$app" scale "$name" --replicas=0 >/dev/null
 done <<<"$workloads"
 kubectl -n "$app" wait --for=delete pod --all --timeout=5m >/dev/null 2>&1 || [ -z "$(kubectl -n "$app" get pod -o name)" ]
 if [ -n "$cluster" ]; then
@@ -156,7 +163,7 @@ fi
 image=$(sed -nE 's/^ *imageName: (.*)$/\1/p' "$repo/apps/gitea/database.yaml")
 cleanup_restore() {
   kubectl delete ns "$jobns" --ignore-not-found --wait=true >/dev/null
-  kubectl get pv -o name | grep -E '^persistentvolume/rollback-(live|snap)-[0-9]+$' | xargs -r kubectl delete >/dev/null
+  kubectl get pv -o name | { grep -E '^persistentvolume/rollback-(live|snap)-[0-9]+$' || true; } | xargs -r kubectl delete >/dev/null
 }
 step="preparing the copy"; say "$step"
 cleanup_restore
@@ -292,11 +299,14 @@ step="starting the app"; say "$step"
 # A migration can outlast the release's timeout; the scale-up below still has to happen.
 flux resume hr -n "$app" "$app" --timeout=35m >/dev/null || echo "  (HelmRelease not Ready yet, going on: check it)"
 while read -r name replicas; do
-  [ -z "$name" ] || kubectl -n "$app" scale "$name" --replicas="$replicas" >/dev/null
+  [ -n "$name" ] || continue
+  kubectl -n "$app" scale "$name" --replicas="$replicas" >/dev/null
+  kubectl -n "$app" annotate "$name" rollback.eyouga.fr/replicas- >/dev/null
 done <<<"$workloads"
 while read -r name suspended; do
   [ -n "$name" ] || continue
   [ "$suspended" = true ] || kubectl -n "$app" patch cronjob "$name" --type=merge -p '{"spec":{"suspend":false}}' >/dev/null
+  kubectl -n "$app" annotate cronjob "$name" rollback.eyouga.fr/suspend- >/dev/null
 done <<<"$crons"
 while read -r name _; do
   [ -z "$name" ] || kubectl -n "$app" rollout status "$name" --timeout=20m >/dev/null
@@ -312,7 +322,7 @@ if [ "$app" = nextcloud ]; then
   occ files:scan --all --no-interaction | tail -3
   occ maintenance:data-fingerprint
 fi
-trap - ERR
+trap - EXIT
 
 say "Done"
 echo "  Check: kubectl -n $app get pods; flux get hr -n $app"
