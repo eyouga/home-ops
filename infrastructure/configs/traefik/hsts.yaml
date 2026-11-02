@@ -1,0 +1,12 @@
+# Every name under eyouga.fr is HTTPS only (the wildcard certificate covers them), so
+# browsers may remember that for the subdomains too. On the entry points, in
+# Traefik's release.yaml. Not preloaded: that's a commitment hard to walk back.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: hsts
+  namespace: traefik
+spec:
+  headers:
+    stsSeconds: 15552000
+    stsIncludeSubdomains: true
