@@ -12,6 +12,34 @@ spec:
       sectionName: websecure
   hostnames: [transmission.eyouga.fr]
   rules:
+    # A static icon; homepage's status dot, through Traefik.
+    - matches:
+        - path:
+            type: Exact
+            value: /transmission/web/images/favicon.ico
+      backendRefs:
+        - name: transmission
+          port: 9091
     - backendRefs:
         - name: transmission
           port: 9091
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: authelia
+---
+# Forward-auth: Traefik asks Authelia about each request. A Middleware can only be
+# referenced from its own namespace, hence one here. Who gets in is decided in
+# apps/authelia/config/configuration.yml.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: authelia
+  namespace: transmission
+spec:
+  forwardAuth:
+    address: http://authelia.authelia.svc.cluster.local:9091/api/authz/forward-auth
+    trustForwardHeader: true
+    authResponseHeaders: [Remote-User, Remote-Groups, Remote-Email, Remote-Name]

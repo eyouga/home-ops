@@ -12,6 +12,34 @@ spec:
       sectionName: websecure
   hostnames: [lidarr.eyouga.fr]
   rules:
+    # Answers only "OK"; homepage's status dot, through Traefik.
+    - matches:
+        - path:
+            type: Exact
+            value: /ping
+      backendRefs:
+        - name: lidarr
+          port: 8686
     - backendRefs:
         - name: lidarr
           port: 8686
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: authelia
+---
+# Forward-auth: Traefik asks Authelia about each request. A Middleware can only be
+# referenced from its own namespace, hence one here. Who gets in is decided in
+# apps/authelia/config/configuration.yml.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: authelia
+  namespace: lidarr
+spec:
+  forwardAuth:
+    address: http://authelia.authelia.svc.cluster.local:9091/api/authz/forward-auth
+    trustForwardHeader: true
+    authResponseHeaders: [Remote-User, Remote-Groups, Remote-Email, Remote-Name]

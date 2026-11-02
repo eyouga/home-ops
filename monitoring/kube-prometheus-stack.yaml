@@ -39,6 +39,7 @@ spec:
 
     prometheus:
       prometheusSpec:
+        externalUrl: https://prometheus.eyouga.fr
         retention: 30d
         # A ceiling below the PVC, so a scrape explosion trims history
         # instead of filling the disk and stopping ingestion.
@@ -62,6 +63,7 @@ spec:
 
     alertmanager:
       alertmanagerSpec:
+        externalUrl: https://alertmanager.eyouga.fr
         storage:
           volumeClaimTemplate:
             spec:

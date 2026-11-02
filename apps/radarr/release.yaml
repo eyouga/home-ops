@@ -34,6 +34,13 @@ spec:
               repository: ghcr.io/home-operations/radarr
               tag: 6.4.4.10685@sha256:1902ad2c08e9bac276ff9a1429af2eaa2f3c635a51f138f1b3eb734995171537
             env:
+              # Authelia in front (the route's Middleware), and the NetworkPolicy keeps
+              # everything else out but the apps with a rule there.
+              RADARR__AUTH__METHOD: External
+              RADARR__AUTH__REQUIRED: DisabledForLocalAddresses
+              # The route's name and the in-cluster callers' names. Loopback and the
+              # pod's own name always pass; the probes below say localhost.
+              RADARR__SERVER__ALLOWEDHOSTS: radarr.eyouga.fr,radarr.radarr.svc,radarr.radarr.svc.cluster.local,radarr.radarr,radarr
               TZ: Europe/Paris
               # The image says develop; its "update available" check should
               # follow the stable channel we pin from.
@@ -46,6 +53,8 @@ spec:
                   httpGet:
                     path: /ping
                     port: 7878
+                    httpHeaders:
+                      - { name: Host, value: localhost }
                   periodSeconds: 30
                   timeoutSeconds: 5
                   failureThreshold: 5

@@ -38,7 +38,7 @@
         icon: transmission.png
         href: https://transmission.eyouga.fr/transmission/web/
         description: Torrents
-        siteMonitor: https://transmission.eyouga.fr/transmission/web/
+        siteMonitor: https://transmission.eyouga.fr/transmission/web/images/favicon.ico
 
 - Maison:
     - Nextcloud:
@@ -63,3 +63,18 @@
         href: https://grafana.eyouga.fr
         description: Métriques et alertes
         siteMonitor: https://grafana.eyouga.fr/api/health
+    - Prometheus:
+        icon: prometheus.png
+        href: https://prometheus.eyouga.fr
+        description: Métriques brutes
+        siteMonitor: https://prometheus.eyouga.fr/-/healthy
+    - Alertmanager:
+        icon: alertmanager.png
+        href: https://alertmanager.eyouga.fr
+        description: Alertes en cours
+        siteMonitor: https://alertmanager.eyouga.fr/-/healthy
+    - Authelia:
+        icon: authelia.png
+        href: https://auth.eyouga.fr
+        description: Compte et double authentification
+        siteMonitor: https://auth.eyouga.fr/api/health

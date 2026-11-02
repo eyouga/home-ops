@@ -40,6 +40,9 @@ spec:
                 - homeassistant.eyouga.fr
                 - git.eyouga.fr
                 - grafana.eyouga.fr
+                - prometheus.eyouga.fr
+                - alertmanager.eyouga.fr
+                - auth.eyouga.fr
           securityContext:
             runAsNonRoot: true
             runAsUser: 568

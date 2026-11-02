@@ -12,6 +12,34 @@ spec:
       sectionName: websecure
   hostnames: [seerr.eyouga.fr]
   rules:
+    # Public by Seerr's own design; homepage's status dot, through Traefik.
+    - matches:
+        - path:
+            type: Exact
+            value: /api/v1/settings/public
+      backendRefs:
+        - name: seerr
+          port: 5055
     - backendRefs:
         - name: seerr
           port: 5055
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: authelia
+---
+# Forward-auth: Traefik asks Authelia about each request. A Middleware can only be
+# referenced from its own namespace, hence one here. Who gets in is decided in
+# apps/authelia/config/configuration.yml.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: authelia
+  namespace: seerr
+spec:
+  forwardAuth:
+    address: http://authelia.authelia.svc.cluster.local:9091/api/authz/forward-auth
+    trustForwardHeader: true
+    authResponseHeaders: [Remote-User, Remote-Groups, Remote-Email, Remote-Name]
