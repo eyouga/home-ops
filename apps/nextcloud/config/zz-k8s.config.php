@@ -33,4 +33,7 @@ $CONFIG = array (
     8 => 'OC\\Preview\\TXT',
     9 => 'OC\\Preview\\XBitmap',
   ),
+  // Heavy daily background jobs run in the 4 hours from 01:00 UTC
+  // (02:00–06:00 in Paris), not whenever cron happens to pick them.
+  'maintenance_window_start' => 1,
 );
