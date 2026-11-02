@@ -25,3 +25,16 @@ http:
   use_x_forwarded_for: true
   trusted_proxies:
     - 10.42.0.0/16
+# Sign-in through Authelia (custom_components/auth_oidc, release.yaml's init
+# container); its `admins` policy decides who gets here. automatic_user_linking only
+# for the first login: it ties the OIDC user to the Home Assistant login of the
+# same name, then goes.
+auth_oidc:
+  client_id: home-assistant
+  client_secret: !env_var OIDC_CLIENT_SECRET
+  discovery_url: https://auth.eyouga.fr/.well-known/openid-configuration
+  display_name: Authelia
+  features:
+    automatic_user_linking: true
+  roles:
+    admin: admins

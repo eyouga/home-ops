@@ -4,6 +4,19 @@ resources:
   - namespace.yaml
   - networkpolicy.yaml
   - repository.yaml
+  # The client secret Authelia knows as `jellyfin`.
+  - oidc.sops.yaml
   - storage.yaml
   - release.yaml
   - route.yaml
+# Hashed name, so editing a file in config/ upgrades the HelmRelease and rolls
+# the pod; kustomizeconfig.yaml carries the hash into it.
+configMapGenerator:
+  - name: jellyfin-files
+    namespace: jellyfin
+    files:
+      - config/install-sso.py
+      - config/SSO-Auth.xml
+      - config/branding.xml
+configurations:
+  - kustomizeconfig.yaml

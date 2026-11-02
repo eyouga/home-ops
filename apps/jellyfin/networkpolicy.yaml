@@ -48,6 +48,14 @@ spec:
       ports:
         - { port: 53, protocol: UDP }
         - { port: 53, protocol: TCP }
+    # auth.eyouga.fr (release.yaml's hostAliases): traffic to the LoadBalancer IP
+    # reaches Traefik's pods on 8443.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - { port: 8443, protocol: TCP }
     # Metadata providers, artwork, subtitles, the plugin catalogue.
     - to:
         - ipBlock:

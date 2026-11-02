@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PluginConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SamlConfigs />
+  <OidConfigs>
+    <item>
+      <key><string>authelia</string></key>
+      <value>
+        <PluginConfiguration>
+          <OidEndpoint>https://auth.eyouga.fr</OidEndpoint>
+          <OidClientId>jellyfin</OidClientId>
+          <OidSecret>__OIDC_CLIENT_SECRET__</OidSecret>
+          <Enabled>true</Enabled>
+          <EnableAuthorization>true</EnableAuthorization>
+          <EnableAllFolders>true</EnableAllFolders>
+          <EnabledFolders />
+          <AdminRoles><string>admins</string></AdminRoles>
+          <Roles />
+          <RoleClaim>groups</RoleClaim>
+          <OidScopes><string>groups</string></OidScopes>
+          <DefaultUsernameClaim>preferred_username</DefaultUsernameClaim>
+          <LogoutUrl>https://auth.eyouga.fr/logout</LogoutUrl>
+          <SchemeOverride>https</SchemeOverride>
+          <UseClientSecretBasic>true</UseClientSecretBasic>
+        </PluginConfiguration>
+      </value>
+    </item>
+  </OidConfigs>
+  <EnforceSsoOnly>false</EnforceSsoOnly>
+  <SsoOnlyExemptUsernames />
+</PluginConfiguration>

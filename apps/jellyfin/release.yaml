@@ -25,12 +25,33 @@ spec:
           # keeps it from changing with every pod.
           hostname: jellyfin
           runtimeClassName: nvidia-cdi
+          # The issuer the SSO plugin checks, reached through Traefik.
+          hostAliases:
+            - ip: 192.168.1.201
+              hostnames: [auth.eyouga.fr]
           securityContext:
             runAsNonRoot: true
             runAsUser: 568
             runAsGroup: 568
             seccompProfile:
               type: RuntimeDefault
+        initContainers:
+          sso:
+            image:
+              repository: docker.io/library/python
+              tag: 3.13-alpine@sha256:7984cf56ceaddebe4fefeb75d64000b9f45d8b77b11a09b24524da6cdc3af0c8
+            command: [python3, -B, /files/install-sso.py]
+            env:
+              OIDC_CLIENT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: jellyfin-oidc
+                    key: client-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
         containers:
           app:
             image:
@@ -87,6 +108,15 @@ spec:
             port: 8096
 
     persistence:
+      # config/ (kustomization.yaml's configMapGenerator), for the init container.
+      files:
+        type: configMap
+        name: jellyfin-files
+        advancedMounts:
+          jellyfin:
+            sso:
+              - path: /files
+                readOnly: true
       config:
         type: persistentVolumeClaim
         storageClass: fast

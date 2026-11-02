@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BrandingOptions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <LoginDisclaimer>&lt;form action="https://jellyfin.eyouga.fr/sso/OID/start/authelia"&gt;&lt;button class="raised block emby-button button-submit"&gt;Se connecter avec Authelia&lt;/button&gt;&lt;/form&gt;</LoginDisclaimer>
+  <CustomCss>.disclaimerContainer { display: block; }</CustomCss>
+  <SplashscreenEnabled>false</SplashscreenEnabled>
+</BrandingOptions>

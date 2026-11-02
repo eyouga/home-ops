@@ -150,7 +150,8 @@ identity_providers:
         pkce_challenge_method: S256
         redirect_uris: [https://jellyfin.eyouga.fr/sso/OID/redirect/authelia]
         scopes: [openid, profile, groups]
-        token_endpoint_auth_method: client_secret_post
+        # The plugin's pushed authorization requests only ever use this method.
+        token_endpoint_auth_method: client_secret_basic
       - client_id: home-assistant
         client_name: Home Assistant
         client_secret: '{{ secret "/secrets/oidc-home-assistant" }}'

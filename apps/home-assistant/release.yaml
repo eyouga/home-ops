@@ -26,29 +26,76 @@ spec:
       home-assistant:
         strategy: Recreate
         pod:
-          # The Jellyfin integration calls https://jellyfin.eyouga.fr. Inside
-          # the cluster that name would go to public DNS; this sends it to
+          # The Jellyfin integration calls https://jellyfin.eyouga.fr, and
+          # auth_oidc checks the issuer at https://auth.eyouga.fr. Inside the
+          # cluster those names would go to public DNS; this sends them to
           # Traefik, as blocky does on the LAN.
           hostAliases:
             - ip: 192.168.1.201
-              hostnames: [jellyfin.eyouga.fr]
+              hostnames: [jellyfin.eyouga.fr, auth.eyouga.fr]
           securityContext:
             runAsNonRoot: true
             runAsUser: 568
             runAsGroup: 568
             seccompProfile:
               type: RuntimeDefault
-        containers:
-          app:
-            image:
+        initContainers:
+          # auth_oidc (hass-oidc-auth), a custom integration, at a pinned release.
+          # Check it still fits before each Home Assistant bump.
+          auth-oidc:
+            image: &image
               repository: homeassistant/home-assistant
               tag: 2026.10.4@sha256:23f4dfbb69ce76315dbc4de7915504f1c2dcecd7ca2648113a493a385972e133
+            command:
+              - python3
+              - -B
+              - -c
+              - |
+                import hashlib, io, json, os, shutil, time, urllib.request, zipfile
+                VERSION = "1.2.1"
+                SHA256 = "e5badaaacaa63cfd6fe733924a05e76d75058836190398598fb24de57cd47ccd"
+                URL = f"https://github.com/christiaangoossens/hass-oidc-auth/releases/download/v{VERSION}/hass-oidc-auth.zip"
+                TARGET = "/config/custom_components/auth_oidc"
+                def installed():
+                    try:
+                        return json.load(open(TARGET + "/manifest.json"))["version"]
+                    except OSError:
+                        return None
+                if installed() != VERSION:
+                    for attempt in range(30):  # kube-router admits a new pod a moment after it starts
+                        try:
+                            data = urllib.request.urlopen(URL, timeout=30).read()
+                            break
+                        except OSError as e:
+                            print("waiting for the network:", e, flush=True)
+                            time.sleep(2)
+                    else:
+                        raise SystemExit("could not download auth_oidc")
+                    if hashlib.sha256(data).hexdigest() != SHA256:
+                        raise SystemExit("auth_oidc's checksum doesn't match")
+                    shutil.rmtree(TARGET, ignore_errors=True)
+                    zipfile.ZipFile(io.BytesIO(data)).extractall(TARGET)
+                print("auth_oidc", VERSION, "in place", flush=True)
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+        containers:
+          app:
+            image: *image
             workingDir: /config
             command: [python3, -P, -m, homeassistant, --config, /config]
             env:
               TZ: Europe/Paris
               # As the image's s6 run script sets them.
               PYTHONMALLOC: mimalloc
+              # Read by configuration.yaml's !env_var.
+              OIDC_CLIENT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: home-assistant-oidc
+                    key: client-secret
             envFrom:
               # HA_RECORDER_DB_URL, read by configuration.yaml's !env_var.
               - secretRef:
