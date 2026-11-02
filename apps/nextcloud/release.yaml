@@ -5,7 +5,7 @@
 # upgrade`; it refuses to skip a major. Per rung: snapshot fast/k8s +
 # fast/k8s-db, CronJobs suspended, bump, then app updates, missing indices,
 # the expensive repair, and a pod restart so notify_push runs the updated
-# binary (~/def-jam-rescue/tools/phase6-nextcloud-rung.sh). config.php is
+# binary (scripts/nextcloud-rung.sh). config.php is
 # the restored nextcloud-config PVC, the files are on tank (storage.yaml). Everything runs as 568 like on TrueNAS, so
 # nothing is chown-ed (the image's www-data is 33).
 #

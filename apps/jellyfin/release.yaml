@@ -1,6 +1,6 @@
-# Jellyfin at the old server's exact image (Phase 5: restore first, upgrade
-# in Phase 6). Config from the rescued jellyfin-config PVC; uid 568 like on
-# TrueNAS. The libraries point at /media/{films,series,music}, the old paths:
+# Jellyfin, restored at the old server's 10.9.3 (Phase 5), then stepped to current
+# (Phase 6: 10.9.11 → 10.10.7 → 10.11.11 → 12.4; 10.11 requires 10.10.7). Config
+# from the rescued jellyfin-config PVC; uid 568 like on TrueNAS. The libraries point at /media/{films,series,music}, the old paths:
 # tank/data's media/ mounted read-only there (storage.yaml), since the *arrs
 # own the library. Transcodes and cache are scratch
 # (emptyDir), as before. The RTX 2070 is passed in through the nvidia-cdi

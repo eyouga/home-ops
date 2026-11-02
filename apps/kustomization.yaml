@@ -1,7 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# Phase 5's order (MIGRATION.md): DNS, the download stack, jellyfin, gitea,
-# nextcloud, home-assistant, homepage. Transmission came in Phase 6.
+# Roughly in dependency order, for reading: DNS, the download stack, the rest.
 resources:
   - blocky
   - flaresolverr
