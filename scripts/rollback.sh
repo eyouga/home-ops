@@ -128,7 +128,8 @@ on_exit() {
   echo >&2
   echo "rollback: FAILED while $step." >&2
   if [ -n "$started" ]; then
-    echo "  The app stays down: HelmRelease $app is suspended and its workloads are at 0." >&2
+    echo "  The app stays down: HelmRelease $app and Kustomization apps are suspended, its workloads at 0." >&2
+    echo "  So no app receives changes from git until this is finished, or: flux resume ks apps" >&2
     [ -z "$cluster" ] || echo "  Database $cluster may be hibernated: kubectl -n databases annotate cluster $cluster cnpg.io/hibernation=off --overwrite" >&2
     echo "  What was live is in fast/k8s@pre-rollback-$app-$ts and fast/k8s-db@pre-rollback-$app-$ts; $jobns's pods are left to read." >&2
     echo "  Fix the cause and run this again: it's safe, and knows the replicas." >&2
@@ -141,6 +142,11 @@ ssh "$host" "zfs snapshot fast/k8s@pre-rollback-$app-$ts fast/k8s-db@pre-rollbac
 started=1
 
 step="stopping the app"; say "$step"
+# Flux removes annotations it doesn't own at each reconcile, so with `apps` running
+# the hibernation below would end by itself within the hour, and Postgres would
+# start over the files being replaced. Rehearsed: it does. Other apps only stop
+# receiving changes from git until this is over.
+flux suspend ks apps >/dev/null
 flux suspend hr -n "$app" "$app" >/dev/null
 while read -r name suspended; do
   [ -n "$name" ] || continue
@@ -255,6 +261,9 @@ i=0
 for p in "${pairs[@]}"; do
   i=$((i + 1)); live=${p%% *}; from=${p##* }
   step="copying back $live"; say "$step"
+  if [ -n "$cluster" ] && [ -n "$(kubectl -n databases get pod -l "cnpg.io/cluster=$cluster" -o name)" ]; then
+    step="checking the database is down: it's running again, nothing was copied over it"; false
+  fi
   volume live "$i" "$live"
   volume snap "$i" "$from"
   # Who owns what's in it is who the app writes as. The top directory is the provisioner's.
@@ -292,9 +301,11 @@ if [ -n "$sha" ]; then
   git -C "$repo" revert --no-edit "$sha" >/dev/null
   git -C "$repo" push -q
   flux reconcile source git flux-system >/dev/null
-  # Applies the reverted HelmRelease, still suspended, so nothing can start the bad version.
-  flux reconcile ks apps --timeout=5m >/dev/null || echo "  (the apps layer reports not Ready while $app is down; going on)"
 fi
+
+# Applies the reverted HelmRelease, still suspended, so nothing can start the bad version.
+step="resuming Flux's apps layer"; say "$step"
+flux resume ks apps --timeout=5m >/dev/null || echo "  (the apps layer reports not Ready while $app is down; going on)"
 
 step="starting the app"; say "$step"
 # A migration can outlast the release's timeout; the scale-up below still has to happen.
