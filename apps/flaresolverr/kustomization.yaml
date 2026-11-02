@@ -5,3 +5,4 @@ resources:
   - networkpolicy.yaml
   - repository.yaml
   - release.yaml
+  - deliberate-secret.yaml
