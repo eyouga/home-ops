@@ -167,7 +167,7 @@ spec:
         cronjob:
           # true while a major upgrade runs: a cron.php running while the
           # entrypoint swaps the code could break halfway.
-          suspend: &cronSuspend false
+          suspend: &cronSuspend true
           schedule: "*/5 * * * *"
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
