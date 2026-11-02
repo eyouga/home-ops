@@ -1,12 +1,14 @@
-# Home Assistant 2024.5.5, the old server's exact image (Phase 5: restore
-# first, upgrade in Phase 6). /config is the rescued home-assistant-config
-# PVC; the recorder's history is in Postgres (database.yaml).
+# Home Assistant, restored at the old server's 2024.5.5 (Phase 5), then moved
+# in ~6-month hops to current (Phase 6: deprecations last about that long).
+# /config is the rescued home-assistant-config PVC; the recorder's history is
+# in Postgres (database.yaml).
 #
 # The old pod ran the image's s6-overlay init as root (PUID 568 there is a
 # linuxserver convention this image ignores). Here it runs as 568 with a
 # read-only root: the command is what s6's home-assistant service ran
-# (`python3 -m homeassistant --config /config` from /config, jemalloc
-# preloaded), without s6, which needs root. Tested on an empty /config first:
+# (`python3 -P -m homeassistant --config /config` from /config, mimalloc:
+# check /etc/services.d/home-assistant/run on every bump, it changed in
+# 2026.10), without s6, which needs root. Tested on an empty /config first:
 # it starts clean, and installs nothing (every integration in use ships its
 # requirements in the image; anything else would land in /config/deps).
 apiVersion: helm.toolkit.fluxcd.io/v2
@@ -40,14 +42,13 @@ spec:
           app:
             image:
               repository: homeassistant/home-assistant
-              tag: 2026.5.4@sha256:ceb1202133a5a036e8b03e20a10eb113186cc2f871968323c6fc6c3fc4205716
+              tag: 2026.10.4@sha256:23f4dfbb69ce76315dbc4de7915504f1c2dcecd7ca2648113a493a385972e133
             workingDir: /config
-            command: [python3, -m, homeassistant, --config, /config]
+            command: [python3, -P, -m, homeassistant, --config, /config]
             env:
               TZ: Europe/Paris
               # As the image's s6 run script sets them.
-              LD_PRELOAD: /usr/local/lib/libjemalloc.so.2
-              MALLOC_CONF: background_thread:true,metadata_thp:auto,dirty_decay_ms:20000,muzzy_decay_ms:20000
+              PYTHONMALLOC: mimalloc
             envFrom:
               # HA_RECORDER_DB_URL, read by configuration.yaml's !env_var.
               - secretRef:
