@@ -25,7 +25,7 @@ pg_dump --format=custom --file="$dump.partial"
 tables=$(pg_restore --list "$dump.partial" | grep -c ' TABLE DATA ')
 [ "$tables" -gt 0 ]
 mv "$dump.partial" "$dump"
-echo "$dump: $(du -h "$dump" | cut -f1), $tables tables"
+echo "$dump: $(du -h --apparent-size "$dump" | cut -f1), $tables tables"
 
 # By count, never by age: if dumps stop, the last good ones stay. Timestamps
 # sort by name, so reversed means newest first.
