@@ -1,0 +1,116 @@
+# An app can be Ready and still broken: these ask each route, through Traefik, the way
+# a browser on the LAN does. The real certificate is checked too. Each forward-auth
+# route has one open path that reaches the app (a 302 from Authelia would prove nothing
+# about the app behind it). From inside the cluster: not a check of the internet's
+# way in, which doesn't exist yet (MIGRATION.md §11). rules/probes.yaml alerts;
+# scripts/ci/probes.sh fails a new route without a target here.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: blackbox-exporter
+  namespace: monitoring
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: prometheus-blackbox-exporter
+      version: 11.20.2 # exporter v0.29.1
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+  values:
+    # Inside the cluster these names would go to public DNS; this sends them to Traefik,
+    # as blocky does on the LAN.
+    hostAliases:
+      - ip: 192.168.1.201
+        hostNames:
+            - alertmanager.eyouga.fr
+            - auth.eyouga.fr
+            - eyouga.fr
+            - git.eyouga.fr
+            - grafana.eyouga.fr
+            - homeassistant.eyouga.fr
+            - jellyfin.eyouga.fr
+            - lidarr.eyouga.fr
+            - nextcloud.eyouga.fr
+            - prometheus.eyouga.fr
+            - prowlarr.eyouga.fr
+            - radarr.eyouga.fr
+            - seerr.eyouga.fr
+            - sonarr.eyouga.fr
+            - transmission.eyouga.fr
+    resources:
+      requests: { cpu: 10m, memory: 32Mi }
+      limits: { memory: 64Mi }
+    config:
+      modules:
+        http_ok: &http
+          prober: http
+          timeout: 10s
+          http:
+            preferred_ip_protocol: ip4
+            fail_if_not_ssl: true
+            no_follow_redirects: true
+            valid_status_codes: [200]
+        # status.php answers 200 in maintenance mode, and mid-upgrade.
+        nextcloud:
+          <<: *http
+          http:
+            preferred_ip_protocol: ip4
+            fail_if_not_ssl: true
+            no_follow_redirects: true
+            valid_status_codes: [200]
+            fail_if_body_not_matches_regexp:
+              - '"installed":true'
+              - '"maintenance":false'
+              - '"needsDbUpgrade":false'
+        login_page:
+          <<: *http
+          http:
+            preferred_ip_protocol: ip4
+            fail_if_not_ssl: true
+            no_follow_redirects: true
+            valid_status_codes: [200]
+            fail_if_body_not_matches_regexp: ["Authelia"]
+        login_gate:
+          <<: *http
+          http:
+            preferred_ip_protocol: ip4
+            fail_if_not_ssl: true
+            no_follow_redirects: true
+            valid_status_codes: [302]
+            fail_if_header_not_matches:
+              - header: Location
+                regexp: '^https://auth\.eyouga\.fr/'
+    serviceMonitor:
+      enabled: true
+      defaults:
+        interval: 60s
+        scrapeTimeout: 30s
+      targets:
+        - { name: authelia, url: "https://auth.eyouga.fr/api/health", module: http_ok }
+        - { name: authelia-login, url: "https://auth.eyouga.fr/", module: login_page }
+        - { name: jellyfin, url: "https://jellyfin.eyouga.fr/health", module: http_ok }
+        - { name: seerr, url: "https://seerr.eyouga.fr/api/v1/settings/public", module: http_ok }
+        - { name: sonarr, url: "https://sonarr.eyouga.fr/ping", module: http_ok }
+        - { name: radarr, url: "https://radarr.eyouga.fr/ping", module: http_ok }
+        - { name: lidarr, url: "https://lidarr.eyouga.fr/ping", module: http_ok }
+        - { name: prowlarr, url: "https://prowlarr.eyouga.fr/ping", module: http_ok }
+        - { name: transmission, url: "https://transmission.eyouga.fr/transmission/web/images/favicon.ico", module: http_ok }
+        - { name: nextcloud, url: "https://nextcloud.eyouga.fr/status.php", module: nextcloud }
+        - { name: home-assistant, url: "https://homeassistant.eyouga.fr/manifest.json", module: http_ok }
+        - { name: forgejo, url: "https://git.eyouga.fr/api/healthz", module: http_ok }
+        - { name: grafana, url: "https://grafana.eyouga.fr/api/health", module: http_ok }
+        - { name: prometheus, url: "https://prometheus.eyouga.fr/-/healthy", module: http_ok }
+        - { name: alertmanager, url: "https://alertmanager.eyouga.fr/-/healthy", module: http_ok }
+        # The login in front of it still answers: what a chart bump dropping the
+        # forward-auth Middleware would turn into an open door.
+        - { name: homepage-gate, url: "https://eyouga.fr/", module: login_gate }
+        - { name: sonarr-gate, url: "https://sonarr.eyouga.fr/", module: login_gate }
+        - { name: radarr-gate, url: "https://radarr.eyouga.fr/", module: login_gate }
+        - { name: lidarr-gate, url: "https://lidarr.eyouga.fr/", module: login_gate }
+        - { name: prowlarr-gate, url: "https://prowlarr.eyouga.fr/", module: login_gate }
+        - { name: transmission-gate, url: "https://transmission.eyouga.fr/", module: login_gate }
+        - { name: seerr-gate, url: "https://seerr.eyouga.fr/", module: login_gate }
+        - { name: prometheus-gate, url: "https://prometheus.eyouga.fr/", module: login_gate }
+        - { name: alertmanager-gate, url: "https://alertmanager.eyouga.fr/", module: login_gate }

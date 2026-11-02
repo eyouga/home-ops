@@ -23,6 +23,7 @@
             gitleaks
             gnutar
             kubeconform
+            kubernetes-helm
             kustomize
             yq-go
           ];

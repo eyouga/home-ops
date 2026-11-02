@@ -1,0 +1,31 @@
+# What blackbox-exporter sees through Traefik (../blackbox-exporter.yaml).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: probes
+  namespace: monitoring
+spec:
+  groups:
+    - name: probes
+      rules:
+        # Longer than a Recreate rollout or a patch's `occ upgrade`, so a normal
+        # update doesn't page; the rung scripts run with someone watching anyway.
+        - alert: RouteProbeFailing
+          expr: probe_success == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.target }} fails through Traefik: {{ $labels.instance }}"
+            description: >-
+              `curl -v` it, then the app's logs. A `-gate` target means the login in front
+              of the route stopped answering: if the route now answers 200, it's open.
+        # cert-manager renews at 30 days left, so 14 means renewals have failed for two weeks.
+        - alert: RouteCertificateExpiring
+          expr: probe_ssl_earliest_cert_expiry - time() < 14 * 86400
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "The certificate on {{ $labels.instance }} expires in under 14 days"
+            description: "`kubectl -n traefik describe certificate`, then cert-manager's logs."

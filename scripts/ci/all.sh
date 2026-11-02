@@ -6,7 +6,7 @@ source "$(dirname "$0")/lib.sh"
 ci=$repo/scripts/ci
 out=$(mktemp -d)
 trap 'rm -rf "$out"' EXIT
-for check in "build.sh $out" "validate.sh $out" secrets.sh images.sh plugin-pins.sh; do
+for check in "build.sh $out" "render.sh $out" "validate.sh $out" secrets.sh images.sh plugin-pins.sh "probes.sh $out"; do
   echo "::group::$check"
   # shellcheck disable=SC2086
   bash "$ci/"$check || fail "$check"

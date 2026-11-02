@@ -11,9 +11,11 @@ resources:
   - routes.yaml
   - smartctl-exporter.yaml
   - dcgm-exporter.yaml
+  - blackbox-exporter.yaml
   - rules/storage.yaml
   - rules/flux.yaml
   - rules/backup.yaml
+  - rules/probes.yaml
   - dashboards
   - flux.yaml
 # Hashed name, so editing the values upgrades the HelmRelease;
