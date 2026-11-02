@@ -79,6 +79,9 @@ spec:
             fail_if_not_ssl: true
             no_follow_redirects: true
             valid_status_codes: [302]
+            # What a browser sends: to anything else Authelia answers 401, not the login.
+            headers:
+              Accept: text/html
             fail_if_header_not_matches:
               - header: Location
                 regexp: '^https://auth\.eyouga\.fr/'
