@@ -96,6 +96,22 @@ spec:
               PGPASSWORD:
                 valueFrom:
                   secretKeyRef: { name: nextcloud-db, key: password }
+      authelia:
+        type: cronjob
+        cronjob:
+          <<: *cronjob
+          schedule: "15 3 * * *"
+        containers:
+          app:
+            <<: *app
+            env:
+              CLUSTER: authelia
+              PGUSER:
+                valueFrom:
+                  secretKeyRef: { name: authelia-db, key: username }
+              PGPASSWORD:
+                valueFrom:
+                  secretKeyRef: { name: authelia-db, key: password }
 
     persistence:
       dumps:

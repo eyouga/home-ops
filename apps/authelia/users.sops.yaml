@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: authelia-users
+    namespace: authelia
+stringData:
+    users.yml: ENC[AES256_GCM,data:/1Id2LVGAz8+Y4aEZ1rZH+6irpbOgmJc2kxvFJnEtgFi00o9v5Z/8aPFakLJjOQN8fctJgv4i+4hUdmQbv1aZnRtpvIZDHDHlC4DMZSveLo8JsvvwqElqeeYCWg1KkIJ4y0+4GbUQ0FmIUKcTgsytMCbLZa4SDL+dVFE0phmXBCeQpa8acvTIP5u8X4cFqiUdpYqO6o4PgdTRgLPbBr36dlr7CcFpl+fpF6sKRueVNh3pAznPae24hp2E/IvcRj92wghIM9SWXAFz4LlGqRzzaMpXgT0DZONM1fefgwOLxlBhwotFIviSLMK3t4hvbyYAwkXTu+PYJhG5yr7DH/xb+CQMhjYb5G+4mmeWbax4FVFU7qER7IS+dp9IX82iTemyB+sOw0rgqsVlwSZJOHg6sMWI30JkiDYaZp0ZfPW4q2ESJwPC3bhy9grpLLRD2krUVrNPHDACu8ZW0g89kJYgA5qEYvIluAsnV403Lxu9Msu71W4C80YivGXEz7lPeudYyzBRhlGOTS1aeAPdXtyXJQU9zFbHfEtDXoJr97dAtOfP6HAW/4z1QWoMI0Nl7Pay9rt9TknvlFjg+K9cP/4n+hq4cArmj/jz5bE748RnZh7yOzmAi2VgmTaNLCgL2gVansjxR1YGf03y46afGA4YR53lO6thqZPKjnSYRy4RF00/bx1vCeG6uLXMl27RTlL4UrkiSTheRq08UdggxyMl9rMPvF5jGbHRYnviHMlCkeWeE5i4pMskaB8QSeuKMQecRiuuoMKpM2HBM/o8KcXoJtjVKPqWUWxV60T01z/LP4O1gRfSXrI4Qc9KnvTsC1tDl3rMCYuY9+do9vjCLsv/hH/FNS21xeMzTwRJb4gnD2wxGod8dK2ZDjFD6G3iW6k7KwzWlgM3E8pkEWzB5YHCQQ0sPfcrVNKyAyNpg3+NKleV0wlhY1x0gn+kMbLvM/haDnnORcLSkIOwKMfhLbPGXvR9RULqOkhqsrEQKIGwMyyvwKK51WN9iyp/SOGFjXYAWkKgAlPCesD3t7m0f93vtvyz4IYLlpPgxlvBF2M4zlSD2J/52fwQyPwgzHt2C9MXcmAD8IGZ8ZTHUYNSKEfM7pFb6ue5O7//Md6iY2JLs5qQh9cbh5UcITK1npz8x3ZV6KLHLIZPESGIcz7bkYFXiH5TqJoh5tA+o6RmA==,iv:ROam7RCLN21a3qVQBMB+JyMOtYK0TU5JSl0T8uWg7vs=,tag:mT5oPwDAeHDiDbCFuSpSNw==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBQTUhueXpZcWZpNEpiR3RH
+            NXlkKytrUWZIQk9jNjIvK3ZlNm82c3RXRUNvClYxcTkwNGQzYWNwRVkxUHlNSlRQ
+            clV6L0t4OEN1U2VBdDdaQld6VkNHczQKLS0tIEl0OW81T2xTYUZkOEFKanpwbUFZ
+            eHRwT1YweGFiUjFoRUpvdkNqam1QWHMKW0Q6So5D1tn7M1pUSHK/z0I7AhBUdowh
+            4UmekVhczIPzCfsvRXEgZRuMvGmCUzgxoNtHT851RWHeZsT9WR3R7Q==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1wg79n0lgmaaxc767tntfuly7fhhqtujr7pzuafgs9p7k3sh4tecqvccr7u
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-11-02T12:36:12Z"
+    mac: ENC[AES256_GCM,data:uXkEwHHLjl7ia2HF1MG9+SVGgsV2PCvmEavzgE7KIkQ9+ZMNhbwClt46WtzotzXUbfA0L0cOzTXfPekFhs/5797KRYQGo3VsepFAwSdigP0YoHpwzuWp+a1mrnr7B1aiC/mB0UPgh9s9DyJFp7r/RnkwglIm08iqMoVCfFORHS0=,iv:Fvqd+92lRYll7YSSUo6rNsTgQ3UGu1Mzk831HWDQ0hQ=,tag:IyPMukAkdEs1mY7W7We4qA==,type:str]
+    mac_only_encrypted: true
+    version: 3.13.3

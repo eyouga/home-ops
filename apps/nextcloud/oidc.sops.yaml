@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: nextcloud-oidc
+    namespace: nextcloud
+stringData:
+    client-secret: ENC[AES256_GCM,data:2zstZw6q/zT6dBCA+ofuFGZ3BGQ6VvmUSf85H+whClhbl4gkuSVlRamilIUCjOvv2htaeGi/ilDU+1HXrVgAYw==,iv:sDqjr7XcsNcA4L0Z1RWvJn1VXst+H0nVZdokWqh2yqI=,tag:qecwhkls/1n2DG7IBUgYvw==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBzRzRmSUdPb0VIdm9iZVFr
+            WnE4VDBJU2dOTUhsNit2NEtJdVJrK0tGVTNvClVhTUJUSXJuRlFJbzhUdWdvSDdw
+            S3ZyQ0xzdFJEV1dsRXNENjR6ZlV0ZDQKLS0tIDFmc01PUWlvZHJhVUhrU3ZYdWlK
+            TjFXTXdDVWpQOElIVTJHTnNteFFDT0kK/BOCLgT59oMBXCblo2IMdKGNbA4oY288
+            U5Jm3Fy2irEuKgcdn+HzUwOebC8puZBmUygmgWDuCIILH5PBgKhP2g==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1wg79n0lgmaaxc767tntfuly7fhhqtujr7pzuafgs9p7k3sh4tecqvccr7u
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-11-02T12:36:12Z"
+    mac: ENC[AES256_GCM,data:4wMOFB/Bkn+MSBNNKgW038ZatTH8SCqf4kwIUTqu/H1LdDuuyOk+3VAHxFpgsfZBZQu1nc89wMiNgT3aJmKEH01cDp52fOhGKBBaocAxF+AEvgMrY9RwBd7W7hPJ61nTGPNyQLeW2rh0SfDYVvd4ZD5/7gs1aCV6ZGsjfePMNxU=,iv:K9CVhlx3Q1YFgD/anBgNzGMFV7nLVxD9L8Uw6FXdUc8=,tag:buFx5tBtXfZRQlWFNz1eRw==,type:str]
+    mac_only_encrypted: true
+    version: 3.13.3

@@ -3,6 +3,7 @@ kind: Kustomization
 # Roughly in dependency order, for reading: DNS, the download stack, the rest.
 resources:
   - blocky
+  - authelia
   - flaresolverr
   - prowlarr
   - sonarr

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: gitea-oidc
+    namespace: gitea
+stringData:
+    client-secret: ENC[AES256_GCM,data:3hi8cGu2XTwBxYutEwxFaVYnmpQ4MWg2Vp2+OmOpGPANiCJuPYsqif76hceazULcx9vrWOb5g39NYByJhaNlAA==,iv:c+2FFTEUSArp8rMacQqIWEBd1jaM0U19ed6GGU9fL7Y=,tag:OAd0onhvzK13+GwLAxDbNg==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBHYkk0eW4vd3pMdXJadEx2
+            Y1Rhb2JsVHF5eE1WNGwyYWlhSmlQMHNHWlJBCkdLNTRPa0dLOTNjL29WOFZhMEZ5
+            OUNaZXZjQWJlVmpyVzE3ZzJ1Y1JWOG8KLS0tIHh1TW9iTXBjY0dUbnJXeUY1SXNq
+            VG8xSWRyZFloRVZJSzY4aE5HRU9MSFUKGVh/wD1AdRI6sm0JH/r6avZl1N1RtBfO
+            iCj25kOPHgjbGSKEvFqm82mQ1whSrjLJdnn17x4AN8bfpNL1J9vQjg==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1wg79n0lgmaaxc767tntfuly7fhhqtujr7pzuafgs9p7k3sh4tecqvccr7u
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-11-02T12:36:12Z"
+    mac: ENC[AES256_GCM,data:bwCo6BbrzAppFvFvI6zy8U3iUxqWEevXBMllG6tjkUYrh3+MR518w/GUpwQXTewWAWidXtorkr+uLx2tAydwShqKSPekjT1S+ZrJfgLvYY4nFN36uEz4YoGf8UnFFoLrXxAYlDVC18WX64VmPRWv0SPCic3jfskfaQR7zI1eu7c=,iv:FoWQpsatWUffzP/RHLhVLvL6Bt1DPgN4U/mmaFvP6S4=,tag:tT+77HfTq9Kr00zhyqaWUw==,type:str]
+    mac_only_encrypted: true
+    version: 3.13.3

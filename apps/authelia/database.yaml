@@ -1,0 +1,88 @@
+# Authelia's Postgres, in the `databases` namespace like every CNPG cluster: 2FA
+# registrations, consents and the authentication log. Sessions stay in memory.
+# The `authelia` role's password comes from db-credentials.sops.yaml, the same
+# value as `db-password` in the app's secrets.sops.yaml.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: authelia
+  namespace: databases
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.6-standard-trixie@sha256:39add80f5b1e573e2f6b641c66fd1a2f8dede67ca0330e870285bc1078551390
+  storage:
+    storageClass: fast
+    size: 1Gi
+  bootstrap:
+    initdb:
+      database: authelia
+      owner: authelia
+      secret:
+        name: authelia-db
+  resources:
+    requests:
+      cpu: 20m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+---
+# Cluster.spec.monitoring.enablePodMonitor is deprecated; this is its
+# replacement. podRole=instance leaves out poolers, should one ever exist.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: authelia
+  namespace: databases
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: authelia
+      cnpg.io/podRole: instance
+  podMetricsEndpoints:
+    - port: metrics
+---
+# Ingress only: who may reach this database. Egress stays open, since the
+# instance manager talks to the API server (the node's own IP).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: authelia
+  namespace: databases
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: authelia
+  policyTypes: [Ingress]
+  ingress:
+    # Authelia itself.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: authelia
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: authelia
+      ports:
+        - { port: 5432, protocol: TCP }
+    # Its nightly dump (apps/pg-dump).
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: pg-dump
+              app.kubernetes.io/controller: authelia
+      ports:
+        - { port: 5432, protocol: TCP }
+    # The operator, through the instance manager's status endpoint.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system
+      ports:
+        - { port: 8000, protocol: TCP }
+    # Prometheus (the PodMonitor above).
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - { port: 9187, protocol: TCP }

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: home-assistant-oidc
+    namespace: home-assistant
+stringData:
+    client-secret: ENC[AES256_GCM,data:NT/+LWgBlK5op5RF2p+Ki+VM5Rf5As6ObfKRzOJe+a33xYxKXw63kidQchqpIZaxs5fcm+YburA8nLqE5AzbbQ==,iv:S5e5JBnhPzIqiof/Cb8rr5nKyLmh+cPJajOXDQHDpF0=,tag:K246/krKhqYDjtDf7lSG4w==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBUUGZuVUhERTVBL0hwM3dm
+            eUJoUXBnNDhGTmFYNnU1aEplRTVhdjg0N0Z3Cjk1aUVHV3EwWFNQazk1MDdIbjJr
+            clpkdC91Z2xUT0VPMFJBZUdyWUFaWEkKLS0tIER1S2dRTnRGVXcxZm51QUJ4ampm
+            K0o5YUxFOCtaNFZqaE9xVmtUZ2VVV28KwpwAk1PbKEq8PneXUgEKwWrRIuvhRprD
+            6qtOZ1b5NZMJ/Si28G6Sny9BS4OL6Wi9yt0VIMqKRJkQhh2D1zVxoA==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1wg79n0lgmaaxc767tntfuly7fhhqtujr7pzuafgs9p7k3sh4tecqvccr7u
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-11-02T12:36:12Z"
+    mac: ENC[AES256_GCM,data:px7gN8CSiuPYXy8Ndf9O8oQXTYR0jTYXBRUQNg5eZiipsv32zkB/07iLI7ziMniIBINQa59C11HzKLZjtwFVBfb1TNpwm30YIONEh9v0HOSFoBiFowEo/TPGCSOzVQV1AN/lb7nVnibDGlUdeQ78LlDAHgDhYhwG30ok5iQ/6Yw=,iv:z8/Kgtx2xPBsV8LjDoO8w6ZXP1NoxZr43opSQ2VdHpQ=,tag:t6lTSxckquQ0Id3yY/NwsQ==,type:str]
+    mac_only_encrypted: true
+    version: 3.13.3

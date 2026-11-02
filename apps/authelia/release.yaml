@@ -1,0 +1,114 @@
+# Authelia, the single sign-on for every app: OpenID Connect for those that speak
+# it, forward-auth (a Traefik Middleware next to each route) for the rest.
+# Configuration from git (config/configuration.yml), secrets and users from SOPS.
+#
+# The users file is read-only, so password reset and change are off in the
+# configuration: a new password is a new digest in users.sops.yaml. One replica,
+# since sessions live in memory; a restart signs everyone out and nothing else.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: authelia
+  namespace: authelia
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      authelia:
+        pod:
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 568
+            runAsGroup: 568
+            fsGroup: 568
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: ghcr.io/authelia/authelia
+              tag: 4.39.28@sha256:bd97cff4fcbf715b5ff1f9ae286afbe6033afce385302520b0368122d43a6f54
+            # The binary itself: the image's entrypoint only drops root, and
+            # this pod never has it.
+            command: [/app/authelia, --config, /config/configuration.yml]
+            env:
+              TZ: Europe/Paris
+              # So configuration.yml can read the files in /secrets.
+              X_AUTHELIA_CONFIG_FILTERS: template
+              AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: /secrets/jwt-secret
+              AUTHELIA_SESSION_SECRET_FILE: /secrets/session-secret
+              AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: /secrets/storage-key
+              AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: /secrets/db-password
+              AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE: /secrets/smtp-token
+              AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE: /secrets/oidc-hmac
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/health
+                    port: 9091
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *probe
+              # Migrations run before the server listens.
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/health
+                    port: 9091
+                  periodSeconds: 5
+                  failureThreshold: 60
+            resources:
+              requests:
+                cpu: 20m
+                memory: 64Mi
+              # Argon2id takes 64 MiB per login in flight.
+              limits:
+                memory: 512Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+
+    service:
+      app:
+        controller: authelia
+        ports:
+          http:
+            port: 9091
+
+    persistence:
+      config:
+        type: configMap
+        name: authelia-config
+        globalMounts:
+          - path: /config
+            readOnly: true
+      secrets:
+        type: secret
+        name: authelia
+        defaultMode: 0440
+        globalMounts:
+          - path: /secrets
+            readOnly: true
+      users:
+        type: secret
+        name: authelia-users
+        defaultMode: 0440
+        globalMounts:
+          - path: /users
+            readOnly: true
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
