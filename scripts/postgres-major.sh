@@ -30,6 +30,8 @@ ssh 192.168.1.80 "zfs snapshot fast/k8s-db@pre-pg$major-$c"
 
 cd "$repo"
 sed -i '' -E "s#(imageName: ghcr.io/cloudnative-pg/postgresql:)[^ ]+#\1$image#" "$f"
+# The nightly dump uses the same image: pg_dump can dump an older server, not a newer one.
+sed -i '' -E "s#^( *tag: )[0-9][^ ]*-standard-[^ ]+#\1$image#" apps/pg-dump/release.yaml
 git commit -qam "$c: Postgres → $major (CNPG in-place major upgrade)"
 git push -q
 flux reconcile ks apps --with-source >/dev/null || true
