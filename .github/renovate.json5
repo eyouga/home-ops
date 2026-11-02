@@ -101,6 +101,11 @@
       prBodyNotes: ["Clusters and `apps/pg-dump` together; a minor restarts each database."],
     },
     {
+      description: "Rule 5: nginx's stable line has an even minor, odd is mainline",
+      matchPackageNames: ["docker.io/nginxinc/nginx-unprivileged"],
+      allowedVersions: "/^\\d+\\.\\d*[02468]\\.\\d+$/",
+    },
+    {
       description: "Traefik's chart states the Gateway API version it wants",
       matchPackageNames: ["kubernetes-sigs/gateway-api"],
       prBodyNotes: ["Must be the version Traefik's chart asks for: check its `Chart.yaml` before merging."],
