@@ -65,6 +65,17 @@ spec:
                   periodSeconds: 30
                   failureThreshold: 5
               readiness: *fpm
+              # On a new image the entrypoint first copies the code into the
+              # html PVC and runs `occ upgrade`; fpm only listens after that.
+              # Without this the liveness probe would kill it mid-upgrade.
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 9000
+                  periodSeconds: 10
+                  failureThreshold: 180
             resources:
               requests:
                 cpu: 100m
@@ -148,6 +159,9 @@ spec:
       cron:
         type: cronjob
         cronjob:
+          # Suspended while the majors are stepped up (Phase 6): a cron.php
+          # running while the entrypoint swaps the code could break halfway.
+          suspend: &cronSuspend true
           schedule: "*/5 * * * *"
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
@@ -186,6 +200,7 @@ spec:
       previews:
         type: cronjob
         cronjob:
+          suspend: *cronSuspend
           schedule: "*/30 * * * *"
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
