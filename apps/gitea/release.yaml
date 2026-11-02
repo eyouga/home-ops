@@ -27,6 +27,10 @@ spec:
       gitea:
         strategy: Recreate
         pod:
+          # The issuer it checks is this name, reached through Traefik.
+          hostAliases:
+            - ip: 192.168.1.201
+              hostnames: [auth.eyouga.fr]
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
@@ -57,6 +61,26 @@ spec:
               GITEA__database__HOST: gitea-rw.databases.svc:5432
               GITEA__cache__ADAPTER: memory
               GITEA__cache__HOST: ""
+              # Sign-in through Authelia only (its `admins` policy decides who): no
+              # password form, no password over basic auth, no OpenID. Access
+              # tokens and SSH keys still work, for git. The auth source itself
+              # is in the database: `forgejo admin auth add-oauth`, MIGRATION.md.
+              GITEA__service__ENABLE_INTERNAL_SIGNIN: "false"
+              GITEA__service__ENABLE_BASIC_AUTHENTICATION: "false"
+              GITEA__service__DISABLE_REGISTRATION: "false"
+              GITEA__service__ALLOW_ONLY_EXTERNAL_REGISTRATION: "true"
+              GITEA__service__SHOW_REGISTRATION_BUTTON: "false"
+              GITEA__openid__ENABLE_OPENID_SIGNIN: "false"
+              GITEA__openid__ENABLE_OPENID_SIGNUP: "false"
+              GITEA__oauth2_client__ENABLE_AUTO_REGISTRATION: "true"
+              GITEA__oauth2_client__USERNAME: nickname
+              GITEA__oauth2_client__ACCOUNT_LINKING: auto
+              # Only for `add-oauth` above, read from the pod's environment.
+              OIDC_CLIENT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: gitea-oidc
+                    key: client-secret
             envFrom:
               # GITEA__database__PASSWD
               - secretRef:

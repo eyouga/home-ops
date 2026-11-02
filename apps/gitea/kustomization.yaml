@@ -8,6 +8,8 @@ resources:
   # in `gitea`. Same value in both.
   - db-credentials.sops.yaml
   - credentials.sops.yaml
+  # The client secret Authelia knows as `forgejo`.
+  - oidc.sops.yaml
   - database.yaml
   - release.yaml
   - route.yaml

@@ -58,6 +58,14 @@ spec:
               cnpg.io/cluster: gitea
       ports:
         - { port: 5432, protocol: TCP }
+    # auth.eyouga.fr (release.yaml's hostAliases): traffic to the LoadBalancer IP
+    # reaches Traefik's pods on 8443.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - { port: 8443, protocol: TCP }
     # Repository migrations and mirrors.
     - to:
         - ipBlock:

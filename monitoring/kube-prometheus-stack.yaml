@@ -164,13 +164,24 @@ spec:
           secretKeyRef:
             name: grafana-oidc
             key: client-secret
+      # The sidecars only ask for a reload over basic auth, which is off. Dashboards
+      # are picked up from their files anyway; a datasource change needs a restart.
+      sidecar:
+        dashboards:
+          skipReload: true
+        datasources:
+          skipReload: true
       grafana.ini:
         server:
           root_url: https://grafana.eyouga.fr
-        # Goes straight to Authelia; the local admin stays usable at
-        # /login?disableAutoLogin=true, should Authelia be down.
+        # Authelia is the only way in: a password here would skip its 2FA. The
+        # admin in grafana-admin stays in the database, unusable. If Authelia is
+        # down, turn these off in git, or `grafana cli admin reset-admin-password`.
         auth:
           oauth_auto_login: true
+          disable_login_form: true
+        auth.basic:
+          enabled: false
         auth.generic_oauth:
           enabled: true
           name: Authelia
