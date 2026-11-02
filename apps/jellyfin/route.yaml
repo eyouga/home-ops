@@ -1,5 +1,4 @@
-# jellyfin.eyouga.fr, as on the old server. LAN only until Phase 8 (public DNS
-# doesn't point here; blocky does).
+# jellyfin.eyouga.fr, as on the old server.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -10,6 +9,10 @@ spec:
     - name: traefik-gateway
       namespace: traefik
       sectionName: websecure
+    # From the internet too (Traefik's release.yaml, and this namespace's label).
+    - name: traefik-gateway
+      namespace: traefik
+      sectionName: public
   hostnames: [jellyfin.eyouga.fr]
   rules:
     - backendRefs:

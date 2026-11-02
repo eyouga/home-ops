@@ -36,6 +36,21 @@ spec:
           # eyouga.fr + *.eyouga.fr, issued in infrastructure/configs/traefik.
           certificateRefs:
             - name: eyouga-fr-tls
+        # The only way in from the internet: the Freebox forwards its port 443 here,
+        # never to 443. Traefik routes by name, so forwarding websecure would publish
+        # every app; this listener only has routes from namespaces labelled for it,
+        # that ask for it (sectionName: public).
+        public:
+          port: 8444
+          protocol: HTTPS
+          namespacePolicy:
+            from: Selector
+            selector:
+              matchLabels:
+                eyouga.fr/public: "true"
+          mode: Terminate
+          certificateRefs:
+            - name: eyouga-fr-tls
     ports:
       web:
         http:
@@ -44,6 +59,21 @@ spec:
               to: websecure
               scheme: https
               permanent: true
+      websecure:
+        http:
+          middlewares:
+            - traefik-hsts@kubernetescrd
+      public:
+        port: 8444
+        expose:
+          default: true
+        exposedPort: 8444
+        protocol: TCP
+        http:
+          tls:
+            enabled: true
+          middlewares:
+            - traefik-hsts@kubernetescrd
     metrics:
       prometheus:
         service:
@@ -54,3 +84,7 @@ spec:
       annotations:
         # Fixed, so DNS (blocky's customDNS) can point eyouga.fr at it.
         metallb.io/loadBalancerIPs: 192.168.1.201
+      spec:
+        # Keeps the client's real address: apps see who connects instead of a
+        # node's. One node, so nothing is lost by staying on it.
+        externalTrafficPolicy: Local

@@ -3,4 +3,5 @@ kind: Namespace
 metadata:
   name: authelia
   labels:
+    eyouga.fr/public: "true"
     pod-security.kubernetes.io/enforce: restricted

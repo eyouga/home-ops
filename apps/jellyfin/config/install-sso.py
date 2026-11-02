@@ -1,7 +1,8 @@
-# Init container: the SSO plugin at its pinned version, its configuration from git.
+# Init container: the SSO plugin at its pinned version, its configuration from git,
+# and Jellyfin's known proxies.
 # The plugin isn't in Jellyfin's catalogue, and the upstream repository (9p4) is
 # archived; this is MaxRink's fork, the one built for Jellyfin 12.
-import glob, hashlib, io, os, shutil, time, urllib.request, zipfile
+import glob, hashlib, io, os, re, shutil, time, urllib.request, zipfile
 
 VERSION = "6.1.0.0"
 SHA256 = "6311d6b16e89a91e44ce9b5a32c09d28eda292a11b75cd6b942d7bc62664cd00"
@@ -31,4 +32,14 @@ fd = os.open("/config/plugins/configurations/SSO-Auth.xml", os.O_WRONLY | os.O_C
 with os.fdopen(fd, "w") as f:
     f.write(xml)
 shutil.copyfile("/files/branding.xml", "/config/config/branding.xml")
+
+# Traefik's pods are proxies to trust for the client's address (k3s's cluster CIDR).
+with open("/config/config/network.xml") as f:
+    network = f.read()
+known = "<KnownProxies><string>10.42.0.0/16</string></KnownProxies>"
+network, n = re.subn(r"<KnownProxies\s*/>|<KnownProxies>.*?</KnownProxies>", known, network, flags=re.S)
+if n != 1:
+    raise SystemExit("KnownProxies not found in network.xml")
+with open("/config/config/network.xml", "w") as f:
+    f.write(network)
 print("SSO plugin", VERSION, "in place", flush=True)

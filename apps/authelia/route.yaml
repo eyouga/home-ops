@@ -11,6 +11,10 @@ spec:
     - name: traefik-gateway
       namespace: traefik
       sectionName: websecure
+    # From the internet too (Traefik's release.yaml, and this namespace's label).
+    - name: traefik-gateway
+      namespace: traefik
+      sectionName: public
   hostnames: [auth.eyouga.fr]
   rules:
     - backendRefs:
