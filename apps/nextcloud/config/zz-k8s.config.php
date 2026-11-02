@@ -43,6 +43,12 @@ $CONFIG = array (
     'default_token_endpoint_auth_method' => 'client_secret_post',
     'enrich_login_id_token_with_userinfo' => true,
   ),
+  // The issuer resolves to Traefik's LAN IP (hostAliases), which Nextcloud's HTTP
+  // client refuses by default, with no per-host exception (the user's decision,
+  // 2026-11-02; user_oidc PR 1598 would narrow this if released). What this guard
+  // would stop is left to the NetworkPolicy: besides Traefik and its own
+  // services, no private address is reachable from these pods.
+  'allow_local_remote_servers' => true,
   // A new account starts empty: files:transfer-ownership --move needs that.
   'skeletondirectory' => '',
 );
