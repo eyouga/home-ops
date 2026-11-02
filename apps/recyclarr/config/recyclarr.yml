@@ -12,11 +12,15 @@
 #
 # Sizes aren't enforced: nothing here caps a release's size, YTS just doesn't
 # publish big ones.
+#
+# No state between runs (release.yaml), so Recyclarr re-adopts its custom formats
+# by name each night (a harmless "already existed ... replaced" warning) and
+# can't delete old ones: a format removed from this file stays in the app, with
+# its score reset to 0 by reset_unmatched_scores, so it no longer does anything.
 radarr:
   radarr_main:
     base_url: http://radarr.radarr.svc:7878
     api_key: !env_var RADARR_API_KEY
-    delete_old_custom_formats: true
     quality_profiles:
       - name: Small encodes
         reset_unmatched_scores:
@@ -51,7 +55,6 @@ sonarr:
   sonarr_main:
     base_url: http://sonarr.sonarr.svc:8989
     api_key: !env_var SONARR_API_KEY
-    delete_old_custom_formats: true
     quality_profiles:
       - name: Small encodes
         reset_unmatched_scores:
