@@ -26,6 +26,6 @@
       </value>
     </item>
   </OidConfigs>
-  <EnforceSsoOnly>false</EnforceSsoOnly>
+  <EnforceSsoOnly>true</EnforceSsoOnly>
   <SsoOnlyExemptUsernames />
 </PluginConfiguration>

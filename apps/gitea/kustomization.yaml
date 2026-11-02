@@ -10,6 +10,8 @@ resources:
   - credentials.sops.yaml
   # The client secret Authelia knows as `forgejo`.
   - oidc.sops.yaml
+  # SECRET_KEY and the /metrics token, from the environment.
+  - secrets.sops.yaml
   - database.yaml
   - release.yaml
   - route.yaml
