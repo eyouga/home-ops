@@ -13,6 +13,8 @@ metadata:
   namespace: jellyfin
 spec:
   interval: 1h
+  # Helm's 5 minutes would call it failed mid-way: a new version migrates its library database before it's Ready.
+  timeout: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
