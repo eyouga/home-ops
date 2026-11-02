@@ -54,6 +54,9 @@ spec:
               # Used by the image's nextcloud.ini (the old chart's values).
               PHP_MEMORY_LIMIT: 1G
               PHP_UPLOAD_LIMIT: 10G
+              # Imagick's fontconfig wants a writable cache; the root is
+              # read-only and /tmp is an emptyDir in every pod.
+              XDG_CACHE_HOME: /tmp/.cache
             envFrom: &envFrom
               # NEXTCLOUD_DB_PASSWORD, REDIS_PASSWORD
               - secretRef:
