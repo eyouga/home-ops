@@ -46,7 +46,7 @@ spec:
   # The operator version monitoring/'s kube-prometheus-stack runs (92.17.0:
   # v0.94.2). Bump both together.
   ref:
-    tag: v0.94.2
+    tag: v0.95.1
   ignore: |
     /*
     !/example/prometheus-operator-crd/
