@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: kube-prometheus-stack
-      version: 92.17.0 # operator v0.94.2
+      version: 93.3.0 # operator v0.94.2
       sourceRef:
         kind: HelmRepository
         name: prometheus-community
