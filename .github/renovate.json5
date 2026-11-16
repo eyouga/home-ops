@@ -9,7 +9,9 @@
   semanticCommits: "disabled",
   labels: ["renovate"],
   prHourlyLimit: 4,
-  prConcurrentLimit: 20,
+  // No cap on open PRs: with one, PRs waiting for a person stop the automatic
+  // tiers below from even being created (20 did, 2026-11-16).
+  prConcurrentLimit: 0,
 
   // Renovate merges by itself, after seeing every check green on the commit, not
   // only the required one. GitHub's native auto-merge would look at required
@@ -120,6 +122,10 @@
       matchUpdateTypes: ["patch", "digest"],
       automerge: true,
       minimumReleaseAge: "3 days",
+      // Renovate gets release dates from Docker Hub only, and never for a digest:
+      // GHCR's Authelia and Jellyfin and every rebuilt image would otherwise wait
+      // for ever. Without a date they merge once green; with one, after 3 days.
+      minimumReleaseAgeBehaviour: "timestamp-optional",
     },
     {
       // Jellyfin 12's tags are X.Y: its Y is the bugfix number.
@@ -128,6 +134,7 @@
       matchUpdateTypes: ["minor"],
       automerge: true,
       minimumReleaseAge: "3 days",
+      minimumReleaseAgeBehaviour: "timestamp-optional",
     },
 
     // ---- By hand, after reading upstream.
