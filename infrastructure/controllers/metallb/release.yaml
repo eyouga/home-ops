@@ -16,6 +16,23 @@ spec:
     crds: CreateReplace
   upgrade:
     crds: CreateReplace
+  # The status cleaner runs on the host's network with a fixed port, so on one node a
+  # rolling update's new pod waits for ever for the old one's port (0.16.2's upgrade
+  # did, 2026-11-16). Recreate stops the old pod first.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              name: metallb-frr-k8s-statuscleaner
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: metallb-frr-k8s-statuscleaner
+              spec:
+                strategy:
+                  type: Recreate
   values:
     # Metrics are HTTPS behind a TokenReview/SubjectAccessReview: Prometheus
     # scrapes with its service-account token, whose ClusterRole already
