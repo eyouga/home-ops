@@ -15,3 +15,19 @@ spec:
     - backendRefs:
         - name: home-assistant
           port: 8123
+---
+# Traefik watches this namespace for the route, which means reading its Secrets:
+# infrastructure/controllers/traefik/rbac.yaml.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: traefik-read-secrets
+  namespace: home-assistant
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traefik-read-secrets
+subjects:
+  - kind: ServiceAccount
+    name: traefik
+    namespace: traefik

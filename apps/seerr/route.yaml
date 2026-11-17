@@ -43,3 +43,19 @@ spec:
     address: http://authelia.authelia.svc.cluster.local:9091/api/authz/forward-auth
     trustForwardHeader: true
     authResponseHeaders: [Remote-User, Remote-Groups, Remote-Email, Remote-Name]
+---
+# Traefik watches this namespace for the route, which means reading its Secrets:
+# infrastructure/controllers/traefik/rbac.yaml.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: traefik-read-secrets
+  namespace: seerr
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traefik-read-secrets
+subjects:
+  - kind: ServiceAccount
+    name: traefik
+    namespace: traefik

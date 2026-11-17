@@ -1,0 +1,30 @@
+# Traefik's providers cache every Secret in each namespace they watch (for TLS
+# references) and can't watch a namespace without that. The chart's ClusterRole
+# reads Secrets in the whole cluster, the sops key in flux-system and the
+# Cloudflare token included; its namespaced mode refuses the Gateway API provider.
+# So release.yaml takes that rule out and lists the namespaces to watch, and a
+# RoleBinding to this ClusterRole sits next to each route, in that route's
+# namespace (it must exist first). scripts/ci/traefik.sh keeps them in agreement.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: traefik-read-secrets
+rules:
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [get, list, watch]
+---
+# The Gateway's certificate.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: traefik-read-secrets
+  namespace: traefik
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traefik-read-secrets
+subjects:
+  - kind: ServiceAccount
+    name: traefik
+    namespace: traefik
