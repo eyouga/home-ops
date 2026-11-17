@@ -12,13 +12,72 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: traefik
+  # The chart's ClusterRole reads every Secret in the cluster; this takes that
+  # rule out (rbac.yaml says what replaces it). The test fails the upgrade if a
+  # chart version moves the rule, rather than removing another one.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: ClusterRole
+              name: traefik-traefik
+            patch: |
+              - op: test
+                path: /rules/3/resources
+                value: [secrets]
+              - op: remove
+                path: /rules/3
   values:
+    # Only the namespaces with a route or a Middleware, and its own (the Gateway,
+    # its certificate): it reads every Secret where it watches (rbac.yaml). A route
+    # in any other namespace gets no answer. scripts/ci/traefik.sh checks both lists.
     providers:
       kubernetesGateway:
         enabled: true
+        namespaces:
+          - authelia
+          - gitea
+          - home-assistant
+          - homepage
+          - jellyfin
+          - lidarr
+          - monitoring
+          - nextcloud
+          - prowlarr
+          - radarr
+          - seerr
+          - sonarr
+          - transmission
+          - traefik
+      kubernetesCRD:
+        namespaces:
+          - authelia
+          - gitea
+          - home-assistant
+          - homepage
+          - jellyfin
+          - lidarr
+          - monitoring
+          - nextcloud
+          - prowlarr
+          - radarr
+          - seerr
+          - sonarr
+          - transmission
+          - traefik
       # Routes are HTTPRoutes only; no Ingress objects in this cluster.
       kubernetesIngress:
         enabled: false
+    # Renovate does that, and Traefik can't reach the internet (networkpolicy.yaml).
+    global:
+      checkNewVersion: false
+    # Usually 60-80 MiB; 215 MiB at most over two weeks.
+    resources:
+      requests:
+        cpu: 20m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
     # The chart's Gateway, shared by every app's HTTPRoute.
     gateway:
       listeners:
