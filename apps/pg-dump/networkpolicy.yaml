@@ -1,3 +1,5 @@
+# shape: default-deny: databases has none yet. TEMPORARY: until eyouga/home-ops#39
+# (infrastructure/configs/storage/databases-networkpolicy.yaml) is merged.
 # Nothing reaches these pods; they reach kube-dns and Postgres. Which cluster
 # each one may dump is decided at the other end: the NetworkPolicy in each
 # apps/<cluster>/database.yaml admits only its own controller's pods.

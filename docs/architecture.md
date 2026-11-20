@@ -74,7 +74,10 @@ Copy `apps/blocky` (no storage) or `apps/sonarr` (with storage). Each app has:
   copied in by an init container at each start (Transmission);
 - secrets only as `*.sops.yaml`.
 
-A deviation from this says why in a comment next to it.
+CI checks this shape (`scripts/ci/shape.sh`, and kube-linter through
+`scripts/ci/kube-lint.sh`). A deviation says why: on a `# shape: <rule>: <why>`
+line in the app's directory, or in an `ignore-check.kube-linter.io/<check>`
+annotation whose value is the reason.
 
 ## Secrets
 
