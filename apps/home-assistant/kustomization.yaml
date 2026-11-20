@@ -13,8 +13,8 @@ resources:
   - database.yaml
   - release.yaml
   - route.yaml
-# Hashed name, so editing configuration.yaml upgrades the HelmRelease and
-# rolls the pod; kustomizeconfig.yaml carries the hash into it.
+# Hashed name, so editing a file in config/ upgrades the HelmRelease and rolls
+# the pod; kustomizeconfig.yaml carries the hash into it.
 configMapGenerator:
   - name: home-assistant-files
     namespace: home-assistant

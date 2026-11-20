@@ -7,10 +7,10 @@ resources:
   - storage.yaml
   - release.yaml
   - route.yaml
-# Hashed name, so editing settings.json upgrades the HelmRelease and rolls
+# Hashed name, so editing a file in config/ upgrades the HelmRelease and rolls
 # the pod; kustomizeconfig.yaml carries the hash into it.
 configMapGenerator:
-  - name: transmission-settings
+  - name: transmission-files
     namespace: transmission
     files:
       - config/settings.json

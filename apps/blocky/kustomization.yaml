@@ -5,10 +5,10 @@ resources:
   - networkpolicy.yaml
   - repository.yaml
   - release.yaml
-# Hashed name, so editing config/config.yml upgrades the HelmRelease and rolls the
-# pod; kustomizeconfig.yaml carries the hash into its persistence.
+# Hashed name, so editing a file in config/ upgrades the HelmRelease and rolls
+# the pod; kustomizeconfig.yaml carries the hash into it.
 configMapGenerator:
-  - name: blocky-config
+  - name: blocky-files
     namespace: blocky
     files: [config/config.yml]
 configurations:

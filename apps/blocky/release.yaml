@@ -89,11 +89,10 @@ spec:
             interval: 1m
 
     persistence:
-      config:
+      # config/ (kustomization.yaml's configMapGenerator).
+      files:
         type: configMap
-        # Generated from config/config.yml (kustomization.yaml); kustomizeconfig.yaml
-        # swaps in the hashed name, so a config edit rolls the pod.
-        name: blocky-config
+        name: blocky-files
         globalMounts:
           - path: /config
             readOnly: true

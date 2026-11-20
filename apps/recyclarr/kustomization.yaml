@@ -6,9 +6,10 @@ resources:
   - repository.yaml
   - credentials.sops.yaml
   - release.yaml
-# Hashed name, so editing recyclarr.yml upgrades the HelmRelease.
+# Hashed name, so editing a file in config/ upgrades the HelmRelease (the next
+# sync reads it); kustomizeconfig.yaml carries the hash into it.
 configMapGenerator:
-  - name: recyclarr-config
+  - name: recyclarr-files
     namespace: recyclarr
     files:
       - config/recyclarr.yml

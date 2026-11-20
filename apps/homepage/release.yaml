@@ -99,9 +99,10 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /app/config
-      settings:
+      # config/ (kustomization.yaml's configMapGenerator).
+      files:
         type: configMap
-        name: homepage-config
+        name: homepage-files
         globalMounts:
           - { path: /app/config/settings.yaml, subPath: settings.yaml, readOnly: true }
           - { path: /app/config/services.yaml, subPath: services.yaml, readOnly: true }

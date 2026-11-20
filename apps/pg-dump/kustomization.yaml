@@ -5,11 +5,12 @@ resources:
   - repository.yaml
   - storage.yaml
   - release.yaml
-# Hashed name, so editing the script upgrades the HelmRelease.
+# Hashed name, so editing a file in config/ upgrades the HelmRelease (the next
+# dump runs it); kustomizeconfig.yaml carries the hash into it.
 configMapGenerator:
-  - name: pg-dump-script
+  - name: pg-dump-files
     namespace: databases
     files:
-      - scripts/pg-dump.sh
+      - config/pg-dump.sh
 configurations:
   - kustomizeconfig.yaml
