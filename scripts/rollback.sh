@@ -77,7 +77,7 @@ cluster=""
 if kubectl -n databases get cluster "$app" >/dev/null 2>&1; then
   [ "$(kubectl -n databases get cluster "$app" -o jsonpath='{.spec.instances}')" = 1 ] || die "cluster $app has more than one instance"
   cluster=$app
-  [ -n "$(pv_paths databases | grep -xF "$root/databases/$cluster-1")" ] || die "$cluster's volume isn't at $root/databases/$cluster-1"
+  pv_paths databases | grep -xF "$root/databases/$cluster-1" >/dev/null || die "$cluster's volume isn't at $root/databases/$cluster-1"
 fi
 [ "${#volumes[@]}" -gt 0 ] || [ -n "$cluster" ] || die "$app has nothing on fast/ to restore"
 
@@ -123,7 +123,7 @@ crons=$(kubectl -n "$app" get cronjob -o go-template='{{range .items}}{{.metadat
 
 say "Plan for $app, nothing has changed yet"
 echo "  safety snapshot  fast/k8s@pre-rollback-$app-$ts fast/k8s-db@pre-rollback-$app-$ts"
-echo "  stop             HelmRelease $app suspended; to 0:" $(echo "$workloads" | cut -d' ' -f1)
+echo "  stop             HelmRelease $app suspended; to 0: $(echo "$workloads" | cut -d' ' -f1 | paste -sd' ' -)"
 [ -z "$cluster" ] || echo "                   database $cluster hibernated"
 for p in "${pairs[@]}"; do
   echo "  REPLACE          ${p%% *}"
@@ -161,6 +161,7 @@ on_exit() {
 trap on_exit EXIT
 
 say "$step"
+# shellcheck disable=SC2029 # expanded here on purpose: these are local values
 ssh "$host" "zfs snapshot fast/k8s@pre-rollback-$app-$ts fast/k8s-db@pre-rollback-$app-$ts"
 started=1
 
@@ -271,6 +272,7 @@ print(json.dumps({"apiVersion":"v1","kind":"Pod","metadata":{"name":name,"namesp
 }
 
 # The refusals come first, before the delete: an empty snapshot, files this uid can't keep.
+# shellcheck disable=SC2016 # runs in the pod, which expands it
 copy_script='set -euo pipefail
 [ -n "$(ls -A /snapshot)" ] || { echo "the snapshot is empty"; exit 3; }
 foreign=$(find /snapshot -mindepth 1 ! -uid "$(id -u)" | wc -l)
@@ -330,7 +332,7 @@ fi
 if [ -n "$sha" ]; then
   step="reverting $sha"
   say "$step"
-  git -C "$repo" diff --quiet && git -C "$repo" diff --cached --quiet || die "$repo has uncommitted changes: revert $sha by hand, then flux resume hr -n $app $app and scale back"
+  { git -C "$repo" diff --quiet && git -C "$repo" diff --cached --quiet; } || die "$repo has uncommitted changes: revert $sha by hand, then flux resume hr -n $app $app and scale back"
   [ "$(git -C "$repo" symbolic-ref --short HEAD)" = main ] || die "$repo isn't on main: revert $sha by hand"
   git -C "$repo" pull -q --ff-only
   git -C "$repo" revert --no-edit "$sha" >/dev/null

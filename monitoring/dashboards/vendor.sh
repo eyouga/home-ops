@@ -15,6 +15,7 @@ DCGM=https://raw.githubusercontent.com/NVIDIA/dcgm-exporter/4.8.4/grafana/dcgm-e
 
 # Applied to all three: drop the import metadata, replace the import input
 # with the variable, and pre-select the chart's datasource.
+# shellcheck disable=SC2016 # a jq program: $ is jq's, not the shell's
 common='
   del(.__inputs, .__elements)
   | walk(if type == "string" then gsub("\\$\\{DS_PROMETHEUS\\}"; "${datasource}") else . end)

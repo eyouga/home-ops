@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # arr-state.sh <app> <port> <apiver> (sonarr 8989 v3, radarr 7878 v3, lidarr 8686 v1, prowlarr 9696 v1): version + what the data holds, no secrets
 n=$1 p=$2 v=$3
-kubectl -n $n exec deploy/$n -- sh -c "k=\$(sed -n 's:.*<ApiKey>\(.*\)</ApiKey>.*:\1:p' /config/config.xml)
+kubectl -n "$n" exec deploy/"$n" -- sh -c "k=\$(sed -n 's:.*<ApiKey>\(.*\)</ApiKey>.*:\1:p' /config/config.xml)
 for e in system/status series movie artist rootfolder downloadclient qualityprofile health; do
   printf '%s\t' \$e; curl -s -H \"X-Api-Key: \$k\" localhost:$p/api/$v/\$e | tr -d '\n'; echo; done" \
   | python3 -c '

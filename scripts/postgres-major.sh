@@ -26,6 +26,7 @@ kubectl -n databases exec "$c-1" -c postgres -- pg_dump -U postgres -Fc "$c" >~/
 echo "dump $(du -h ~/def-jam-rescue/dumps/"$c"-pre-pg"$major".dump | cut -f1)"
 counts >"$tmp/before"
 echo "before: $(wc -l <"$tmp/before") tables, $(awk '{s+=$2} END {print s}' "$tmp/before") rows, $(psql_ -c 'show server_version')"
+# shellcheck disable=SC2029 # expanded here on purpose: these are local values
 ssh 192.168.1.80 "zfs snapshot fast/k8s-db@pre-pg$major-$c"
 
 cd "$repo"

@@ -29,4 +29,5 @@ echo "$dump: $(du -h --apparent-size "$dump" | cut -f1), $tables tables"
 
 # By count, never by age: if dumps stop, the last good ones stay. Timestamps
 # sort by name, so reversed means newest first.
+# shellcheck disable=SC2012 # this script names them <cluster>-<UTC>.dump: no spaces
 ls -1r "$dir"/"$CLUSTER"-*.dump | tail -n "+$((KEEP + 1))" | xargs -r rm -v --

@@ -9,6 +9,7 @@ case $app in sonarr) port=8989 ;; radarr) port=7878 ;; lidarr) port=8686 ;; prow
   exit 2
   ;;
 esac
+# shellcheck disable=SC2016 # runs in the pod, which expands it
 printf '%s' "$body" | kubectl -n "$app" exec -i deploy/"$app" -- sh -c '
 k=$(sed -n "s:.*<ApiKey>\(.*\)</ApiKey>.*:\1:p" /config/config.xml)
 curl -s -X "$1" -H "X-Api-Key: $k" -H "Content-Type: application/json" --data-binary @- "localhost:$2$3" | jq -c .' _ "$method" "$port" "$path"

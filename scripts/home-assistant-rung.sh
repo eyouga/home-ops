@@ -9,6 +9,7 @@ ver=$1 digest=$2
 cd ~/Code/home-ops
 f=apps/home-assistant/release.yaml
 
+# shellcheck disable=SC2029 # expanded here on purpose: these are local values
 ssh 192.168.1.80 "zfs snapshot fast/k8s@pre-home-assistant-$ver fast/k8s-db@pre-home-assistant-$ver"
 echo "snapshots pre-home-assistant-$ver"
 sed -i '' -E "s#^(              tag: )20[0-9.]+@sha256:[0-9a-f]+#\1$ver@$digest#" $f

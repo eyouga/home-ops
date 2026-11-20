@@ -283,13 +283,16 @@ echo "API lists: $(fj curl -fsS -o /dev/null -D - 'http://127.0.0.1:3000/api/v1/
 # Each repository: fsck on the restored copy, and its refs against the live one's.
 # find, not a glob: */*.git would skip a repo named .dotfiles.git.
 list='cd /data/git/gitea-repositories && find . -mindepth 2 -maxdepth 2 -name "*.git" -type d | sort'
+# shellcheck disable=SC2016 # runs in the pod, which expands it
 refs="$list"' | while read -r r; do echo "$r $(git -C "$r" for-each-ref | sha256sum | cut -c1-16)"; done'
 fj sh -c "$refs" | sort >"$tmp/restored-refs"
 kubectl -n gitea exec deploy/gitea -c app -- sh -c "$refs" | sort >"$tmp/live-refs"
+# shellcheck disable=SC2016 # runs in the pod, which expands it
 fj sh -c "$list"' | while read -r r; do git -C "$r" fsck --no-progress >/dev/null 2>&1 && echo "fsck ok: $r" || echo "FSCK FAILED: $r"; done'
 diff "$tmp/live-refs" "$tmp/restored-refs" && echo "every repo's refs identical to live" || true
 
 # Each repo served over HTTP, from a clone of the restored copy.
+# shellcheck disable=SC2016 # runs in the pod, which expands it
 fj sh -c 'cd /tmp && for u in $(curl -fsS "http://127.0.0.1:3000/api/v1/repos/search?limit=50" | grep -oE "\"clone_url\":\"[^\"]*\"" | cut -d\" -f4 | sed -E "s#^https?://[^/]+#http://127.0.0.1:3000#"); do
   git clone -q --mirror "$u" /tmp/clone.git 2>/dev/null && echo "clone ok: ${u##*/}, $(git -C /tmp/clone.git rev-list --all --count) commits" || echo "CLONE FAILED: $u"
   rm -rf /tmp/clone.git

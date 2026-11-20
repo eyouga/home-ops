@@ -1,3 +1,4 @@
+# shellcheck shell=bash disable=SC2034 # the variables are for the scripts that source this
 # Sourced by the checks. Run them from anywhere; they work on the repo's tree.
 set -euo pipefail
 repo=$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)

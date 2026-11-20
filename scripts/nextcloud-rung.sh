@@ -9,6 +9,7 @@ ver=$1 digest=$2
 repo=~/Code/home-ops f=apps/nextcloud/release.yaml
 occ() { kubectl -n nextcloud exec deploy/nextcloud -c app -- php occ "$@"; }
 
+# shellcheck disable=SC2029 # expanded here on purpose: these are local values
 ssh 192.168.1.80 "zfs snapshot fast/k8s@pre-nextcloud-$ver fast/k8s-db@pre-nextcloud-$ver"
 echo "snapshots pre-nextcloud-$ver"
 

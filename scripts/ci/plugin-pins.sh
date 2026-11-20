@@ -20,6 +20,6 @@ check() { # <file> <url with $VERSION>
     fail "$file: $url has SHA-256 $actual, the file says $sha"
   fi
 }
-check apps/jellyfin/config/install-sso.py 'https://github.com/MaxRink/jellyfin-plugin-sso/releases/download/v$VERSION/sso-auth_$VERSION.zip'
-check apps/home-assistant/release.yaml 'https://github.com/christiaangoossens/hass-oidc-auth/releases/download/v$VERSION/hass-oidc-auth.zip'
+check apps/jellyfin/config/install-sso.py "https://github.com/MaxRink/jellyfin-plugin-sso/releases/download/v\$VERSION/sso-auth_\$VERSION.zip"
+check apps/home-assistant/release.yaml "https://github.com/christiaangoossens/hass-oidc-auth/releases/download/v\$VERSION/hass-oidc-auth.zip"
 exit $failed
