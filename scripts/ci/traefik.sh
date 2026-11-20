@@ -10,13 +10,21 @@ rendered=${1:?directory build.sh wrote to}
 namespaces() {
   for f in "$rendered"/*.yaml; do
     ns=
-    case "$(basename "$f")" in helm-*) ns=$(basename "$f" .yaml); ns=${ns#helm-}; ns=${ns%%_*} ;; esac
+    case "$(basename "$f")" in helm-*)
+      ns=$(basename "$f" .yaml)
+      ns=${ns#helm-}
+      ns=${ns%%_*}
+      ;;
+    esac
     NS=$ns yq "select(tag == \"!!map\") | $1 | (.metadata.namespace // strenv(NS))" "$f"
   done | grep -v '^---$' | grep -v '^$' | sort -u
 }
 values() { yq "select(tag == \"!!map\") | $1" "$rendered"/*.yaml | grep -v '^---$' | sort -u; }
 
-want=$( { namespaces 'select(.kind == "HTTPRoute" or (.kind == "Middleware" and (.apiVersion | test("^traefik.io/"))))'; echo traefik; } | sort -u)
+want=$({
+  namespaces 'select(.kind == "HTTPRoute" or (.kind == "Middleware" and (.apiVersion | test("^traefik.io/"))))'
+  echo traefik
+} | sort -u)
 [ "$(echo "$want" | wc -l)" -gt 1 ] || fail "found no routes: this check is broken"
 
 providers='select(.kind == "HelmRelease" and .metadata.namespace == "traefik" and .metadata.name == "traefik") | .spec.values.providers'
@@ -29,5 +37,8 @@ compare() { # <what> <namespaces>
 compare "Traefik's kubernetesGateway.namespaces" "$(values "$providers.kubernetesGateway.namespaces[]")"
 compare "Traefik's kubernetesCRD.namespaces" "$(values "$providers.kubernetesCRD.namespaces[]")"
 compare "RoleBindings to traefik-read-secrets" "$(namespaces 'select(.kind == "RoleBinding" and .roleRef.kind == "ClusterRole" and .roleRef.name == "traefik-read-secrets")')"
-compare "Traefik's egress, and its own namespace" "$( { values "$egress"; echo traefik; } | sort -u)"
+compare "Traefik's egress, and its own namespace" "$({
+  values "$egress"
+  echo traefik
+} | sort -u)"
 exit $failed

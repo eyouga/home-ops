@@ -9,8 +9,8 @@ cd "$(dirname "$0")"
 
 # smartctl_exporter and node-exporter ship no dashboards; these are the most
 # used grafana.com ones for their metrics. NVIDIA ships its own.
-SMARTCTL=https://grafana.com/api/dashboards/22604/revisions/4/download   # SMARTctl Exporter Dashboard
-ZFS=https://grafana.com/api/dashboards/24987/revisions/12/download       # ZFS / Overview
+SMARTCTL=https://grafana.com/api/dashboards/22604/revisions/4/download # SMARTctl Exporter Dashboard
+ZFS=https://grafana.com/api/dashboards/24987/revisions/12/download     # ZFS / Overview
 DCGM=https://raw.githubusercontent.com/NVIDIA/dcgm-exporter/4.8.4/grafana/dcgm-exporter-dashboard.json
 
 # Applied to all three: drop the import metadata, replace the import input
@@ -28,9 +28,9 @@ common='
 
 fetch() { curl -fsSL "$1"; }
 
-fetch "$SMARTCTL" | jq "$common" > smartctl.json
-fetch "$DCGM" | jq "$common" > dcgm.json
+fetch "$SMARTCTL" | jq "$common" >smartctl.json
+fetch "$DCGM" | jq "$common" >dcgm.json
 # Its SMART panels find smartctl series by node-exporter's host IP
 # (instance=~"192.168.1.80(:port)?"), which is why smartctl-exporter's
 # instance is relabelled to <host IP>:<port>.
-fetch "$ZFS" | jq "$common" > zfs.json
+fetch "$ZFS" | jq "$common" >zfs.json

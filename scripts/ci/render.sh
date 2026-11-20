@@ -15,7 +15,10 @@ charts=$(mktemp -d) tmp=$(mktemp -d)
 trap 'rm -rf "$charts" "$tmp"' EXIT
 # Layers only: the per-app builds repeat what's in them. One stream to look things up in.
 all=$tmp/all.yaml
-for layer in apps monitoring infrastructure_controllers; do cat "$out/$layer.yaml"; echo '---'; done >"$all"
+for layer in apps monitoring infrastructure_controllers; do
+  cat "$out/$layer.yaml"
+  echo '---'
+done >"$all"
 
 fetch() { # <url> <chart> <version>: the chart's .tgz, once per version
   local url=$1 chart=$2 version=$3 dir
@@ -46,13 +49,19 @@ while IFS=/ read -r ns name; do
     version=$(hr '.spec.chart.spec.version')
     url=$(NS=$ns REF=$ref yq 'select(.kind == "HelmRepository" and .metadata.namespace == env(NS) and .metadata.name == env(REF)) | .spec.url' "$all" | grep -v '^---$')
   fi
-  if [ -z "$url" ] || [ -z "$version" ]; then fail "$id: can't find its chart"; continue; fi
+  if [ -z "$url" ] || [ -z "$version" ]; then
+    fail "$id: can't find its chart"
+    continue
+  fi
 
   args=()
   i=0
   while IFS=$'\t' read -r kind cm key; do
     [ -n "$kind" ] || continue
-    if [ "$kind" != ConfigMap ]; then fail "$id: valuesFrom a $kind can't be rendered without secrets"; continue; fi
+    if [ "$kind" != ConfigMap ]; then
+      fail "$id: valuesFrom a $kind can't be rendered without secrets"
+      continue
+    fi
     i=$((i + 1))
     NS=$ns CM=$cm KEY=${key:-values.yaml} yq 'select(.kind == "ConfigMap" and .metadata.namespace == env(NS) and .metadata.name == env(CM)) | .data[env(KEY)]' "$all" | grep -v '^---$' >"$tmp/from-$i.yaml"
     args+=(-f "$tmp/from-$i.yaml")
@@ -61,12 +70,15 @@ while IFS=/ read -r ns name; do
   args+=(-f "$tmp/values.yaml")
   for a in "${api_versions[@]}"; do args+=(--api-versions "$a"); done
 
-  if ! tgz=$(fetch "$url" "$chart" "$version"); then fail "$id: can't fetch $url $chart $version"; continue; fi
+  if ! tgz=$(fetch "$url" "$chart" "$version"); then
+    fail "$id: can't fetch $url $chart $version"
+    continue
+  fi
   f=$out/helm-${ns}_$name.yaml
   # Sorted, since Helm writes objects of one kind in a random order (Go maps), and
   # scripts/render-diff.sh compares two renders.
-  if helm template "$name" "$tgz" --namespace "$ns" --kube-version "$kube_version" "${args[@]}" >"$tmp/raw.yaml" 2>"$tmp/err" &&
-    yq ea '[.] | sort_by(.kind, .metadata.namespace, .metadata.name) | .[] | splitDoc' "$tmp/raw.yaml" >"$f" 2>"$tmp/err"; then
+  if helm template "$name" "$tgz" --namespace "$ns" --kube-version "$kube_version" "${args[@]}" >"$tmp/raw.yaml" 2>"$tmp/err" \
+    && yq ea '[.] | sort_by(.kind, .metadata.namespace, .metadata.name) | .[] | splitDoc' "$tmp/raw.yaml" >"$f" 2>"$tmp/err"; then
     rendered=$((rendered + 1))
     echo "ok   $id"
   else

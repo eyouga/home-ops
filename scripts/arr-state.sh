@@ -3,8 +3,8 @@
 n=$1 p=$2 v=$3
 kubectl -n $n exec deploy/$n -- sh -c "k=\$(sed -n 's:.*<ApiKey>\(.*\)</ApiKey>.*:\1:p' /config/config.xml)
 for e in system/status series movie artist rootfolder downloadclient qualityprofile health; do
-  printf '%s\t' \$e; curl -s -H \"X-Api-Key: \$k\" localhost:$p/api/$v/\$e | tr -d '\n'; echo; done" |
-python3 -c '
+  printf '%s\t' \$e; curl -s -H \"X-Api-Key: \$k\" localhost:$p/api/$v/\$e | tr -d '\n'; echo; done" \
+  | python3 -c '
 import sys, json
 for line in sys.stdin:
     e, _, body = line.rstrip("\n").partition("\t")

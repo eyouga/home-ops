@@ -184,7 +184,10 @@ spec:
           persistentVolumeClaim: { claimName: dumps, readOnly: true }
 EOF
 kubectl -n "$ns" wait job/pg-restore --for=condition=Complete --timeout=300s >/dev/null \
-  || { kubectl -n "$ns" logs job/pg-restore | tail -20; exit 1; }
+  || {
+    kubectl -n "$ns" logs job/pg-restore | tail -20
+    exit 1
+  }
 kubectl -n "$ns" logs job/pg-restore | grep restoring
 
 counts() { # <namespace> <pod>
@@ -266,7 +269,10 @@ spec:
     - { name: tmp, emptyDir: {} }
 EOF
 kubectl -n "$ns" wait pod/forgejo --for=condition=Ready --timeout=300s >/dev/null \
-  || { kubectl -n "$ns" logs pod/forgejo -c app --tail=30; exit 1; }
+  || {
+    kubectl -n "$ns" logs pod/forgejo -c app --tail=30
+    exit 1
+  }
 echo "Forgejo up on the restored data"
 
 fj() { kubectl -n "$ns" exec pod/forgejo -c app -- "$@"; }

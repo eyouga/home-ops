@@ -2,10 +2,12 @@
 # jellyfin-state.sh <label>: copy Jellyfin's DBs out of the pod (online backup API of
 # sqlite isn't available there, so a plain copy, WAL included), print counts.
 set -euo pipefail
-d=${TMPDIR:-/tmp}/jf-$1; rm -rf "$d"; mkdir -p "$d"
+d=${TMPDIR:-/tmp}/jf-$1
+rm -rf "$d"
+mkdir -p "$d"
 pod=$(kubectl -n jellyfin get pod -l app.kubernetes.io/name=jellyfin -o name | head -1)
 for f in $(kubectl -n jellyfin exec "${pod#pod/}" -- sh -c 'cd /config/data && ls *.db *.db-wal *.db-shm 2>/dev/null'); do
-  kubectl -n jellyfin exec "${pod#pod/}" -- cat "/config/data/$f" > "$d/$f"
+  kubectl -n jellyfin exec "${pod#pod/}" -- cat "/config/data/$f" >"$d/$f"
 done
 python3 - "$d" <<'PY'
 import sqlite3, sys, os

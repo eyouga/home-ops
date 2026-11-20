@@ -8,7 +8,10 @@ check() { # <file> <url with $VERSION>
   local file=$1 url=$2 version sha actual
   version=$(sed -nE 's/^ *VERSION = "([^"]+)"$/\1/p' "$file")
   sha=$(sed -nE 's/^ *SHA256 = "([0-9a-f]{64})"$/\1/p' "$file")
-  [ -n "$version" ] && [ -n "$sha" ] || { fail "$file: no VERSION or SHA256 found"; return; }
+  [ -n "$version" ] && [ -n "$sha" ] || {
+    fail "$file: no VERSION or SHA256 found"
+    return
+  }
   url=${url//\$VERSION/$version}
   actual=$(curl -fsSL "$url" | sha256sum | cut -d' ' -f1)
   if [ "$actual" = "$sha" ]; then

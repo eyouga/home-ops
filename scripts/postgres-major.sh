@@ -22,10 +22,10 @@ kubectl -n "$c" wait pod -l "app.kubernetes.io/name=$c,app.kubernetes.io/control
 echo "app stopped"
 
 mkdir -p ~/def-jam-rescue/dumps
-kubectl -n databases exec "$c-1" -c postgres -- pg_dump -U postgres -Fc "$c" > ~/def-jam-rescue/dumps/"$c"-pre-pg"$major".dump
+kubectl -n databases exec "$c-1" -c postgres -- pg_dump -U postgres -Fc "$c" >~/def-jam-rescue/dumps/"$c"-pre-pg"$major".dump
 echo "dump $(du -h ~/def-jam-rescue/dumps/"$c"-pre-pg"$major".dump | cut -f1)"
-counts > "$tmp/before"
-echo "before: $(wc -l < "$tmp/before") tables, $(awk '{s+=$2} END {print s}' "$tmp/before") rows, $(psql_ -c 'show server_version')"
+counts >"$tmp/before"
+echo "before: $(wc -l <"$tmp/before") tables, $(awk '{s+=$2} END {print s}' "$tmp/before") rows, $(psql_ -c 'show server_version')"
 ssh 192.168.1.80 "zfs snapshot fast/k8s-db@pre-pg$major-$c"
 
 cd "$repo"
@@ -42,12 +42,20 @@ for _ in $(seq 1 120); do
   [ "${v:-0}" -ge "${major}0000" ] && break
   sleep 10
 done
-[ "${v:-0}" -ge "${major}0000" ] || { echo "NOT UPGRADED after 20 min; app left stopped"; kubectl -n databases get pods; exit 1; }
+[ "${v:-0}" -ge "${major}0000" ] || {
+  echo "NOT UPGRADED after 20 min; app left stopped"
+  kubectl -n databases get pods
+  exit 1
+}
 kubectl -n databases wait "cluster.postgresql.cnpg.io/$c" --for=condition=Ready --timeout=300s >/dev/null
 
-counts > "$tmp/after"
-echo "after:  $(wc -l < "$tmp/after") tables, $(awk '{s+=$2} END {print s}' "$tmp/after") rows, $(psql_ -c 'show server_version')"
-if diff "$tmp/before" "$tmp/after" >/dev/null; then echo "every table's row count identical"; else echo "COUNTS DIFFER; app left stopped"; diff "$tmp/before" "$tmp/after" | head -20; exit 1; fi
+counts >"$tmp/after"
+echo "after:  $(wc -l <"$tmp/after") tables, $(awk '{s+=$2} END {print s}' "$tmp/after") rows, $(psql_ -c 'show server_version')"
+if diff "$tmp/before" "$tmp/after" >/dev/null; then echo "every table's row count identical"; else
+  echo "COUNTS DIFFER; app left stopped"
+  diff "$tmp/before" "$tmp/after" | head -20
+  exit 1
+fi
 
 # pg_upgrade doesn't carry optimizer statistics over.
 kubectl -n databases exec "$c-1" -c postgres -- vacuumdb -U postgres --all --analyze-only 2>&1 | tail -1

@@ -6,7 +6,8 @@
 # env) is staged in the working tree before calling this. Prints no secrets.
 set -euo pipefail
 ver=$1 digest=$2
-cd ~/Code/home-ops; f=apps/home-assistant/release.yaml
+cd ~/Code/home-ops
+f=apps/home-assistant/release.yaml
 
 ssh 192.168.1.80 "zfs snapshot fast/k8s@pre-home-assistant-$ver fast/k8s-db@pre-home-assistant-$ver"
 echo "snapshots pre-home-assistant-$ver"
@@ -17,7 +18,9 @@ flux reconcile ks apps --with-source >/dev/null
 flux reconcile hr -n home-assistant home-assistant --timeout=15m >/dev/null
 kubectl -n home-assistant rollout status deploy/home-assistant --timeout=15m
 
-echo "== version"; kubectl -n home-assistant exec deploy/home-assistant -- cat /config/.HA_VERSION; echo
+echo "== version"
+kubectl -n home-assistant exec deploy/home-assistant -- cat /config/.HA_VERSION
+echo
 echo "== log (WARNING and up, deduplicated)"
 kubectl -n home-assistant logs deploy/home-assistant | sed -E 's/\x1b\[[0-9;]*m//g' | grep -E ' (WARNING|ERROR|CRITICAL) ' \
   | grep -v 'recorder.migration' | sed -E 's/^[0-9-]+ [0-9:.]+ //' | cut -c1-230 | sort | uniq -c | sort -rn | head -25

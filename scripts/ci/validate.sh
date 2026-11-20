@@ -20,9 +20,16 @@ curl -fsSL "https://github.com/fluxcd/flux2/releases/download/$flux_version/crd-
 
 # sops's metadata block isn't part of a Secret; the values stay encrypted.
 docs="$schemas/all.yaml"
-for f in "$rendered"/*.yaml; do yq 'del(.sops)' "$f"; echo '---'; done >"$docs"
+for f in "$rendered"/*.yaml; do
+  yq 'del(.sops)' "$f"
+  echo '---'
+done >"$docs"
 git ls-files 'clusters/def-jam/*.yaml' "$generated" ':!clusters/def-jam/flux-system/*' \
-  | while read -r f; do cat "$f"; echo; echo '---'; done >>"$docs"
+  | while read -r f; do
+    cat "$f"
+    echo
+    echo '---'
+  done >>"$docs"
 
 kubeconform -strict -summary -output pretty -skip CustomResourceDefinition \
   -schema-location default \

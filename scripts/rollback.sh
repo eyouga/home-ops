@@ -30,15 +30,36 @@ shift
 sha="" before="" snapshot="" with_files="" yes=""
 while [ $# -gt 0 ]; do
   case "$1" in
-    --revert) sha=$2; shift 2 ;;
-    --before) before=$2; shift 2 ;;
-    --snapshot) snapshot=$2; shift 2 ;;
-    --with-files) with_files=1; shift ;;
-    --yes) yes=1; shift ;;
-    *) echo "unknown option $1" >&2; exit 2 ;;
+    --revert)
+      sha=$2
+      shift 2
+      ;;
+    --before)
+      before=$2
+      shift 2
+      ;;
+    --snapshot)
+      snapshot=$2
+      shift 2
+      ;;
+    --with-files)
+      with_files=1
+      shift
+      ;;
+    --yes)
+      yes=1
+      shift
+      ;;
+    *)
+      echo "unknown option $1" >&2
+      exit 2
+      ;;
   esac
 done
-die() { echo "rollback: $*" >&2; exit 1; }
+die() {
+  echo "rollback: $*" >&2
+  exit 1
+}
 say() { echo "== $*"; }
 [[ $app =~ ^[a-z0-9-]+$ ]] || die "bad app name"
 [ -z "$with_files" ] || [ "$app" = nextcloud ] || die "--with-files is Nextcloud's alone"
@@ -102,7 +123,8 @@ crons=$(kubectl -n "$app" get cronjob -o go-template='{{range .items}}{{.metadat
 
 say "Plan for $app, nothing has changed yet"
 echo "  safety snapshot  fast/k8s@pre-rollback-$app-$ts fast/k8s-db@pre-rollback-$app-$ts"
-echo "  stop             HelmRelease $app suspended; to 0:" $(echo "$workloads" | cut -d' ' -f1); [ -z "$cluster" ] || echo "                   database $cluster hibernated"
+echo "  stop             HelmRelease $app suspended; to 0:" $(echo "$workloads" | cut -d' ' -f1)
+[ -z "$cluster" ] || echo "                   database $cluster hibernated"
 for p in "${pairs[@]}"; do
   echo "  REPLACE          ${p%% *}"
   echo "    with           ${p##* }"
@@ -117,7 +139,8 @@ fi
 [ -z "$sha" ] || echo "  revert           $(git -C "$repo" log -1 --format='%h %s' "$sha" | cut -c1-90)"
 echo "  start            database, then Flux, then the workloads at their replicas"
 if [ -z "$yes" ]; then
-  echo; echo "Plan only. Add --yes to do it."
+  echo
+  echo "Plan only. Add --yes to do it."
   exit 0
 fi
 
@@ -141,7 +164,8 @@ say "$step"
 ssh "$host" "zfs snapshot fast/k8s@pre-rollback-$app-$ts fast/k8s-db@pre-rollback-$app-$ts"
 started=1
 
-step="stopping the app"; say "$step"
+step="stopping the app"
+say "$step"
 # Flux removes annotations it doesn't own at each reconcile, so with `apps` running
 # the hibernation below would end by itself within the hour, and Postgres would
 # start over the files being replaced. Rehearsed: it does. Other apps only stop
@@ -171,7 +195,8 @@ cleanup_restore() {
   kubectl delete ns "$jobns" --ignore-not-found --wait=true >/dev/null
   kubectl get pv -o name | { grep -E '^persistentvolume/rollback-(live|snap)-[0-9]+$' || true; } | xargs -r kubectl delete >/dev/null
 }
-step="preparing the copy"; say "$step"
+step="preparing the copy"
+say "$step"
 cleanup_restore
 kubectl apply -f - >/dev/null <<YAML
 apiVersion: v1
@@ -259,21 +284,29 @@ echo "  $(find /live | wc -l) entries, $(du -sh /live | cut -f1), identical to t
 
 i=0
 for p in "${pairs[@]}"; do
-  i=$((i + 1)); live=${p%% *}; from=${p##* }
-  step="copying back $live"; say "$step"
+  i=$((i + 1))
+  live=${p%% *}
+  from=${p##* }
+  step="copying back $live"
+  say "$step"
   if [ -n "$cluster" ] && [ -n "$(kubectl -n databases get pod -l "cnpg.io/cluster=$cluster" -o name)" ]; then
-    step="checking the database is down: it's running again, nothing was copied over it"; false
+    step="checking the database is down: it's running again, nothing was copied over it"
+    false
   fi
   volume live "$i" "$live"
   volume snap "$i" "$from"
   # Who owns what's in it is who the app writes as. The top directory is the provisioner's.
   uid=$(run "owner-$i" 65534 "$i" 0 "find /snapshot -mindepth 1 -maxdepth 1 -printf '%U\n' | grep -vx 0 | sort | uniq -c | sort -rn | sed -n '1s/.* //p'" | tail -1)
-  [[ $uid =~ ^[1-9][0-9]*$ ]] || { step="reading the owner of $from: '$uid'"; false; }
+  [[ $uid =~ ^[1-9][0-9]*$ ]] || {
+    step="reading the owner of $from: '$uid'"
+    false
+  }
   run "copy-$i" "$uid" "$i" 1 "$copy_script"
 done
 
 if [ -n "$with_files" ]; then
-  step="taking /srv/nextcloud back to $snap_files"; say "$step"
+  step="taking /srv/nextcloud back to $snap_files"
+  say "$step"
   src=/srv/nextcloud/.zfs/snapshot/$snap_files/
   echo "  sudo will ask for your password on def-jam. Counting what would change..."
   ssh -t "$host" "sudo rsync -aHAXn --delete --stats $src /srv/nextcloud/ | grep -E 'Number of (regular files transferred|deleted files)|Total transferred'"
@@ -287,14 +320,16 @@ fi
 cleanup_restore
 
 if [ -n "$cluster" ]; then
-  step="starting the database"; say "$step"
+  step="starting the database"
+  say "$step"
   kubectl -n databases annotate cluster "$cluster" cnpg.io/hibernation=off --overwrite >/dev/null
   sleep 5
   kubectl -n databases wait cluster "$cluster" --for=condition=Ready --timeout=10m >/dev/null
 fi
 
 if [ -n "$sha" ]; then
-  step="reverting $sha"; say "$step"
+  step="reverting $sha"
+  say "$step"
   git -C "$repo" diff --quiet && git -C "$repo" diff --cached --quiet || die "$repo has uncommitted changes: revert $sha by hand, then flux resume hr -n $app $app and scale back"
   [ "$(git -C "$repo" symbolic-ref --short HEAD)" = main ] || die "$repo isn't on main: revert $sha by hand"
   git -C "$repo" pull -q --ff-only
@@ -304,10 +339,12 @@ if [ -n "$sha" ]; then
 fi
 
 # Applies the reverted HelmRelease, still suspended, so nothing can start the bad version.
-step="resuming Flux's apps layer"; say "$step"
+step="resuming Flux's apps layer"
+say "$step"
 flux resume ks apps --timeout=5m >/dev/null || echo "  (the apps layer reports not Ready while $app is down; going on)"
 
-step="starting the app"; say "$step"
+step="starting the app"
+say "$step"
 # A migration can outlast the release's timeout; the scale-up below still has to happen.
 flux resume hr -n "$app" "$app" --timeout=35m >/dev/null || echo "  (HelmRelease not Ready yet, going on: check it)"
 while read -r name replicas; do
@@ -325,7 +362,8 @@ while read -r name _; do
 done <<<"$workloads"
 
 if [ "$app" = nextcloud ]; then
-  step="making Nextcloud's database agree with its files"; say "$step"
+  step="making Nextcloud's database agree with its files"
+  say "$step"
   occ() { kubectl -n nextcloud exec deploy/nextcloud -c app -- php occ "$@"; }
   occ status --output=json | python3 -c 'import json,sys; s=json.load(sys.stdin); print("  ", {k: s[k] for k in ("installed","versionstring","maintenance","needsDbUpgrade")})'
   # A file uploaded since the snapshot is on disk but not in the database, and the
