@@ -8,7 +8,7 @@ source "$(dirname "$0")/lib.sh"
 mine=":!scripts/ci/lint.sh"
 
 files() { git ls-files "$@" "$generated"; }
-mapfile -t sh < <(files '*.sh')
+mapfile -t sh < <(files '*.sh' 'scripts/hooks/*')
 shellcheck "${sh[@]}" || fail shellcheck
 shfmt -d "${sh[@]}" || fail "shfmt: run shfmt -w on these"
 yamllint -s . || fail yamllint

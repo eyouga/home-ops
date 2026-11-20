@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# pre-push: CI's checks on exactly the commits being pushed, before they reach main
+# (Flux applies main, so CI after the push is too late), and the subject rule.
+# Switch it on once per clone: git config core.hooksPath scripts/hooks
+# .dotfiles has the same hook (.nix/scripts/hooks), with its own check command.
+set -euo pipefail
+check() { # <tree>
+  nix develop "$1" -c "$1/scripts/ci/all.sh"
+}
+
+zero=0000000000000000000000000000000000000000
+# `scope: what`, a scope like `nextcloud`, `nix (def-jam)` or `ci, renovate`.
+re='^(Revert "|Merge |[a-z0-9][a-z0-9._/-]*( \([a-z0-9_-]+\))?(, [a-z0-9._/-]+)*: [^ ])'
+bad=0 shas=()
+while read -r _ sha _ remote; do
+  [ "$sha" != "$zero" ] || continue # a deletion
+  if [ "$remote" = "$zero" ]; then revs=("$sha" --not --remotes); else revs=("$remote..$sha"); fi
+  while IFS= read -r subject; do
+    if ! [[ $subject =~ $re ]]; then
+      echo "pre-push: not 'scope: what': $subject" >&2
+      bad=1
+    fi
+    [ ${#subject} -le 72 ] || echo "pre-push: over 72 characters, the why goes in the body: $subject" >&2
+  done < <(git log --format=%s "${revs[@]}")
+  shas+=("$sha")
+done
+
+tmp=$(mktemp -d)
+trap 'git worktree remove --force "$tmp/tree" >/dev/null 2>&1 || true; rm -rf "$tmp"' EXIT
+for sha in $(printf '%s\n' "${shas[@]}" | sort -u); do
+  git worktree add --quiet --detach "$tmp/tree" "$sha"
+  check "$tmp/tree" </dev/null || bad=1
+  git worktree remove --force "$tmp/tree"
+done
+[ "$bad" = 0 ] || {
+  echo "pre-push: nothing pushed. Fix the above and push again." >&2
+  exit 1
+}
