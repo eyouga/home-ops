@@ -8,10 +8,11 @@ spec:
   groups:
     - name: probes
       rules:
-        # CVE-2026-115560 has no fix yet, and Nextcloud leans on a setting until it does
-        # (MIGRATION.md §10). This asks PHP's changelog hourly, so over a range: a sample
-        # an hour old is stale to a plain query. Remove it, its target and its module once
-        # the fix runs here. A changelog that moved would fire it too.
+        # TEMPORARY: until Nextcloud runs a PHP with CVE-2026-115560's fix (8.5.13);
+        # it leans on a setting until then. This asks PHP's changelog hourly, so over
+        # a range: a sample an hour old is stale to a plain query. Remove it, its
+        # target and its module once the fix runs here. A changelog that moved would
+        # fire it too.
         - alert: PhpFixPublished
           expr: max_over_time(probe_success{target="php-fix-watch"}[3h]) == 0
           labels:

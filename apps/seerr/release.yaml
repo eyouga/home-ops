@@ -2,6 +2,8 @@
 # grab it. Its settings are UI-made (a first-run wizard needing a Jellyfin admin
 # login, then settings.json + SQLite in /app/config), hence the PVC. uid 1000,
 # the image's `node`.
+# TEMPORARY: until Seerr ships OIDC (its 3.6.0): Authelia's forward-auth is in
+# front, and Seerr's own Jellyfin login stays behind it.
 #
 # Upstream asks for an init (`docker run --init`): shareProcessNamespace makes
 # the pod's pause process PID 1, which reaps zombies and leaves node's signal

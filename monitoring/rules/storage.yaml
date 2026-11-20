@@ -16,9 +16,9 @@ spec:
         # the others (online, degraded, faulted, offline, removed, unavail,
         # suspended).
         - alert: ZfsPoolNotOnline
-          # Every pool not ONLINE, minus one series: tank while it is
-          # DEGRADED, which it is on purpose until hdd4's replacement is in
-          # (hdd4 OFFLINE). Any other state of tank still fires.
+          # Every pool not ONLINE, minus one series: tank DEGRADED, with hdd4
+          # OFFLINE. TEMPORARY: until hdd4's replacement is in, which
+          # ZfsTankExceptionStale reports. Any other state of tank still fires.
           expr: >-
             node_zfs_zpool_state{state!="online"} == 1
             unless on(zpool, state) node_zfs_zpool_state{zpool="tank", state="degraded"}
@@ -41,7 +41,9 @@ spec:
             summary: "tank is ONLINE again: drop its DEGRADED exception"
             description: >-
               Remove the tank exception from ZfsPoolNotOnline and this rule
-              in monitoring/rules/storage.yaml, so a future degradation pages.
+              in monitoring/rules/storage.yaml, so a future degradation pages;
+              raise IronWolfMissing to 4 there; and point hdd4 at the new disk
+              in the dotfiles' hosts/def-jam/disko-config.nix.
         - alert: ZfsPoolMissing
           expr: >-
             absent(node_zfs_zpool_state{zpool="fast"})
@@ -55,7 +57,7 @@ spec:
 
     - name: disks
       rules:
-        # Three IronWolfs today; 4 once the replacement is in.
+        # TEMPORARY: until hdd4's replacement is in: 3 IronWolfs, then 4.
         - alert: IronWolfMissing
           expr: count(smartctl_device{model_name=~"ST4000VN.*"}) < 3 or absent(smartctl_device{model_name=~"ST4000VN.*"})
           for: 10m

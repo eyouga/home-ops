@@ -72,7 +72,8 @@ spec:
             no_follow_redirects: true
             valid_status_codes: [200]
             fail_if_body_not_matches_regexp: ["Authelia"]
-        # Fails once PHP's changelog names the CVE: see rules/probes.yaml. Temporary.
+        # Fails once PHP's changelog names the CVE: see rules/probes.yaml.
+        # TEMPORARY: until Nextcloud runs a PHP with that fix.
         php_fix_unreleased:
           <<: *http
           timeout: 20s
