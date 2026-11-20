@@ -24,21 +24,21 @@ spec:
     hostAliases:
       - ip: 192.168.1.201
         hostNames:
-            - alertmanager.eyouga.fr
-            - auth.eyouga.fr
-            - eyouga.fr
-            - git.eyouga.fr
-            - grafana.eyouga.fr
-            - homeassistant.eyouga.fr
-            - jellyfin.eyouga.fr
-            - lidarr.eyouga.fr
-            - nextcloud.eyouga.fr
-            - prometheus.eyouga.fr
-            - prowlarr.eyouga.fr
-            - radarr.eyouga.fr
-            - seerr.eyouga.fr
-            - sonarr.eyouga.fr
-            - transmission.eyouga.fr
+          - alertmanager.eyouga.fr
+          - auth.eyouga.fr
+          - eyouga.fr
+          - git.eyouga.fr
+          - grafana.eyouga.fr
+          - homeassistant.eyouga.fr
+          - jellyfin.eyouga.fr
+          - lidarr.eyouga.fr
+          - nextcloud.eyouga.fr
+          - prometheus.eyouga.fr
+          - prowlarr.eyouga.fr
+          - radarr.eyouga.fr
+          - seerr.eyouga.fr
+          - sonarr.eyouga.fr
+          - transmission.eyouga.fr
     resources:
       requests: { cpu: 10m, memory: 32Mi }
       limits: { memory: 64Mi }

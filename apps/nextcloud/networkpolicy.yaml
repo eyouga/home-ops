@@ -84,7 +84,7 @@ spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/controller: redis
-  policyTypes: [Ingress, Egress]
+  policyTypes: [Ingress, Egress] # Egress with no rule: it talks to no one.
   ingress:
     - from:
         - podSelector:
@@ -94,4 +94,3 @@ spec:
                 values: [nextcloud, cron, previews]
       ports:
         - { port: 6379, protocol: TCP }
-  # No egress: it talks to no one.
