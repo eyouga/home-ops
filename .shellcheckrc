@@ -1,0 +1,4 @@
+# Follow `source "$(dirname "$0")/lib.sh"`, so variables lib.sh sets aren't
+# reported as unset in each check.
+external-sources=true
+source-path=SCRIPTDIR

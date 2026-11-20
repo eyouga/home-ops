@@ -1,0 +1,3 @@
+self-hosted-runner:
+  # TEMPORARY: until actionlint knows GitHub's ubuntu-26.04 runner (1.7.12 doesn't).
+  labels: [ubuntu-26.04]

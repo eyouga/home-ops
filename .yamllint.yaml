@@ -1,0 +1,15 @@
+extends: default
+ignore: |
+  clusters/def-jam/flux-system/gotk-components.yaml
+  *.sops.yaml
+rules:
+  # Rule expressions, matchers and URLs stay on one line.
+  line-length: disable
+  # No file here starts with ---.
+  document-start: disable
+  # `{ name: x }` is this repo's flow-map style.
+  braces: { min-spaces-inside: 0, max-spaces-inside: 1 }
+  indentation: { spaces: 2, indent-sequences: consistent }
+  comments: { min-spaces-from-content: 1 }
+  # GitHub's `on:` key.
+  truthy: { check-keys: false }

@@ -19,12 +19,23 @@
       devShells = forAll (pkgs: {
         default = pkgs.mkShellNoCC {
           packages = with pkgs; [
+            actionlint
             curl
             gitleaks
             gnutar
+            jq
+            kube-linter
             kubeconform
             kubernetes-helm
             kustomize
+            libxml2 # xmllint
+            nginx
+            php
+            prometheus.cli # promtool
+            ruff
+            shellcheck
+            shfmt
+            yamllint
             yq-go
           ];
         };
