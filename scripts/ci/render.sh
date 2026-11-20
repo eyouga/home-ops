@@ -63,7 +63,10 @@ while IFS=/ read -r ns name; do
 
   if ! tgz=$(fetch "$url" "$chart" "$version"); then fail "$id: can't fetch $url $chart $version"; continue; fi
   f=$out/helm-${ns}_$name.yaml
-  if helm template "$name" "$tgz" --namespace "$ns" --kube-version "$kube_version" "${args[@]}" >"$f" 2>"$tmp/err"; then
+  # Sorted, since Helm writes objects of one kind in a random order (Go maps), and
+  # scripts/render-diff.sh compares two renders.
+  if helm template "$name" "$tgz" --namespace "$ns" --kube-version "$kube_version" "${args[@]}" >"$tmp/raw.yaml" 2>"$tmp/err" &&
+    yq ea '[.] | sort_by(.kind, .metadata.namespace, .metadata.name) | .[] | splitDoc' "$tmp/raw.yaml" >"$f" 2>"$tmp/err"; then
     rendered=$((rendered + 1))
     echo "ok   $id"
   else
