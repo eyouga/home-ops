@@ -7,8 +7,7 @@
 # It doesn't prove the app starts, only that Flux could install it.
 source "$(dirname "$0")/lib.sh"
 out=${1:?directory build.sh wrote to}
-# What the cluster runs and offers: `helm template` can't ask it.
-kube_version=1.36.5
+# What the cluster offers besides kube_version (lib.sh): `helm template` can't ask it.
 api_versions=(monitoring.coreos.com/v1 gateway.networking.k8s.io/v1 cert-manager.io/v1 postgresql.cnpg.io/v1 metallb.io/v1beta1 traefik.io/v1alpha1)
 
 charts=$(mktemp -d) tmp=$(mktemp -d)
@@ -40,8 +39,10 @@ while IFS=/ read -r ns name; do
   source_kind=$(hr '.spec.chartRef.kind // ""')
   if [ "$source_kind" = OCIRepository ]; then
     ref=$(hr '.spec.chartRef.name')
-    url=$(NS=$ns REF=$ref yq 'select(.kind == "OCIRepository" and .metadata.namespace == env(NS) and .metadata.name == env(REF)) | .spec.url' "$all" | grep -v '^---$')
-    version=$(NS=$ns REF=$ref yq 'select(.kind == "OCIRepository" and .metadata.namespace == env(NS) and .metadata.name == env(REF)) | .spec.ref.tag' "$all" | grep -v '^---$')
+    # Flux looks in the HelmRelease's own namespace unless chartRef names one.
+    src_ns=$(hr ".spec.chartRef.namespace // \"$ns\"")
+    url=$(NS=$src_ns REF=$ref yq 'select(.kind == "OCIRepository" and .metadata.namespace == env(NS) and .metadata.name == env(REF)) | .spec.url' "$all" | grep -v '^---$')
+    version=$(NS=$src_ns REF=$ref yq 'select(.kind == "OCIRepository" and .metadata.namespace == env(NS) and .metadata.name == env(REF)) | .spec.ref.tag' "$all" | grep -v '^---$')
     chart=
   else
     ref=$(hr '.spec.chart.spec.sourceRef.name')

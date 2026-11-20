@@ -10,10 +10,13 @@ spec:
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: flux-system
   values:
     controllers:
       flaresolverr:
         strategy: Recreate
+        annotations:
+          ignore-check.kube-linter.io/no-read-only-root-fs: "undetected-chromedriver writes into /app and $HOME at start (the securityContext below)"
         pod:
           securityContext:
             # The image's `flaresolverr` user (first useradd in its Debian base).

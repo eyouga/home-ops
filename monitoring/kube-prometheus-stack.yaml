@@ -37,6 +37,18 @@ spec:
     kubeEtcd:
       enabled: false
 
+    prometheus-node-exporter:
+      # The chart's two filesystem excludes, restated because this list replaces
+      # them, then the systemd collector (rules/host.yaml): unit states over
+      # def-jam's D-Bus, whose socket is under the / the chart mounts at
+      # /host/root.
+      extraArgs:
+        - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run/containerd/.+|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
+        - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|erofs)$
+        - --collector.systemd
+      env:
+        DBUS_SYSTEM_BUS_ADDRESS: unix:path=/host/root/run/dbus/system_bus_socket
+
     prometheus:
       prometheusSpec:
         externalUrl: https://prometheus.eyouga.fr
@@ -108,6 +120,10 @@ spec:
             # Info-level alerts stay in Alertmanager's UI.
             - receiver: "null"
               matchers: [severity = info]
+            # Critical: ntfy at high priority, which the phone lets through
+            # when it's set to quiet the rest.
+            - receiver: ntfy-critical
+              matchers: [severity = critical]
         receivers:
           - name: "null"
           - name: ntfy
@@ -117,6 +133,14 @@ spec:
               # readable push).
               - url_file: /etc/alertmanager/secrets/alertmanager-ntfy/url
                 send_resolved: true
+          - name: ntfy-critical
+            webhook_configs:
+              - url_file: /etc/alertmanager/secrets/alertmanager-ntfy/url
+                send_resolved: true
+                http_config:
+                  http_headers:
+                    Priority:
+                      values: [high]
           # Written with `sops edit monitoring/alertmanager-healthchecks.sops.yaml`:
           # `ping` = https://hc-ping.com/<uuid>, `fail` = the same + /fail.
           - name: healthchecks

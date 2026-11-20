@@ -7,6 +7,8 @@
   extends: ["config:recommended", "helpers:pinGitHubActionDigests"],
   timezone: "Europe/Paris",
   semanticCommits: "disabled",
+  // Its commits' scope, like everyone's here (CONTRIBUTING.md): "renovate: Update …".
+  commitMessagePrefix: "renovate:",
   labels: ["renovate"],
   prHourlyLimit: 4,
   // No cap on open PRs: with one, PRs waiting for a person stop the automatic
@@ -25,12 +27,19 @@
   automergeSchedule: ["* 9-18 * * *"],
 
   enabledManagers: ["flux", "custom.regex", "github-actions", "nix"],
-  ignorePaths: ["**/*.sops.yaml", "monitoring/dashboards/**"],
+  ignorePaths: ["**/*.sops.yaml"],
   flux: {
     // Also reads the repository + tag@digest pairs in each HelmRelease's values.
     managerFilePatterns: ["/^(apps|infrastructure|monitoring|clusters)/.+\\.yaml$/"],
   },
   nix: { enabled: true },
+  // grafana.com lists a dashboard's revisions; Renovate has no datasource for it.
+  customDatasources: {
+    "grafana-dashboards": {
+      defaultRegistryUrlTemplate: "https://grafana.com/api/dashboards/{{packageName}}/revisions",
+      transformTemplates: ['{"releases": [items.{"version": $string(revision)}]}'],
+    },
+  },
   // flake.nix holds CI's tools only: see the last rule.
   lockFileMaintenance: {
     enabled: true,
@@ -69,7 +78,23 @@
     },
     {
       customType: "regex",
-      description: "The CRD schemas CI validates against",
+      description: "Vendored dashboards from grafana.com (monitoring/dashboards/vendor.sh)",
+      managerFilePatterns: ["/^monitoring/dashboards/vendor\\.sh$/"],
+      matchStrings: ["https://grafana\\.com/api/dashboards/(?<packageName>\\d+)/revisions/(?<currentValue>\\d+)/download\\s+# (?<depName>.+)"],
+      datasourceTemplate: "custom.grafana-dashboards",
+      versioningTemplate: "regex:^(?<major>\\d+)$",
+    },
+    {
+      customType: "regex",
+      description: "NVIDIA's dashboard, from dcgm-exporter's repository",
+      managerFilePatterns: ["/^monitoring/dashboards/vendor\\.sh$/"],
+      matchStrings: ["https://raw\\.githubusercontent\\.com/NVIDIA/dcgm-exporter/(?<currentValue>[^/]+)/grafana/"],
+      depNameTemplate: "NVIDIA/dcgm-exporter",
+      datasourceTemplate: "github-tags",
+    },
+    {
+      customType: "regex",
+      description: "The schemas CI validates against",
       managerFilePatterns: ["/^scripts/ci/validate\\.sh$/"],
       matchStrings: ["# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) currentValue=(?<currentValue>\\S+)\\n[a-z_]+=(?<currentDigest>[0-9a-f]{40})"],
     },
@@ -90,6 +115,17 @@
       matchPackageNames: ["!ghcr.io/authelia/authelia", "!docker.io/library/nextcloud", "!docker.io/nginxinc/nginx-unprivileged", "!ghcr.io/jellyfin/jellyfin"],
       groupName: "rebuilt images",
       schedule: ["on the first day of the month"],
+    },
+    {
+      description: "dcgm-exporter's chart and its dashboard move together",
+      matchPackageNames: ["dcgm-exporter", "NVIDIA/dcgm-exporter"],
+      groupName: "dcgm-exporter",
+    },
+    {
+      description: "Vendored dashboards: red until vendor.sh is re-run",
+      matchFileNames: ["monitoring/dashboards/vendor.sh"],
+      labels: ["renovate", "check-by-hand"],
+      prBodyNotes: ["**Red until regenerated:** run `monitoring/dashboards/vendor.sh` on this branch, read the dashboards' diff, and commit it."],
     },
     {
       description: "One PR for one chart used by every app",
@@ -206,8 +242,8 @@
       minimumReleaseAge: "3 days",
     },
     {
-      description: "The CRD schemas CI validates against",
-      matchPackageNames: ["https://github.com/datreeio/CRDs-catalog"],
+      description: "The schemas CI validates against",
+      matchPackageNames: ["https://github.com/datreeio/CRDs-catalog", "https://github.com/yannh/kubernetes-json-schema"],
       schedule: ["on saturday"],
       automerge: true,
     },

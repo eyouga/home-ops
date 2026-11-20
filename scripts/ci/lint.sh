@@ -44,6 +44,12 @@ if ! out=$(nginx -t -p "$ng" -e "$ng/log/error.log" -c "$ng/nginx.conf" 2>&1); t
   fail "nginx -t apps/nextcloud/config/nginx.conf"
 fi
 
+# KubernetesNotInCI watches for the minor of kube_version (lib.sh).
+minor=${kube_version#*.}
+minor=${minor%%.*}
+grep -qF "minor!=\"$minor\"" monitoring/rules/host.yaml \
+  || fail "monitoring/rules/host.yaml: KubernetesNotInCI's minor isn't $minor, kube_version's in lib.sh"
+
 # Open work is done, marked TEMPORARY with its end, or on the open list.
 # CONTRIBUTING.md and CLAUDE.md state this rule, so they name the words.
 if git grep -n -w -E 'TODO|FIXME' -- . "$generated" "$mine" ':!monitoring/dashboards/*.json' ':!CONTRIBUTING.md' ':!CLAUDE.md'; then

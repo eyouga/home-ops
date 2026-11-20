@@ -17,9 +17,12 @@ spec:
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: flux-system
   values:
     controllers:
       authelia:
+        annotations:
+          ignore-check.kube-linter.io/env-var-secret: "the *_SECRET_FILE variables are paths to the mounted secret files, not secrets"
         pod:
           automountServiceAccountToken: false
           securityContext:

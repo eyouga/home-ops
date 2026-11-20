@@ -1,0 +1,42 @@
+# def-jam itself. Its systemd units, from node-exporter's systemd collector
+# (kube-prometheus-stack.yaml): units that push their own failure to ntfy
+# (notify.nix in the dotfiles) do it once; this keeps reminding until the unit
+# runs again or is reset, and covers every other unit.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: host
+  namespace: monitoring
+spec:
+  groups:
+    - name: systemd
+      rules:
+        - alert: SystemdUnitFailed
+          expr: node_systemd_unit_state{state="failed"} == 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.name }} failed on def-jam"
+            description: >-
+              `systemctl status {{ $labels.name }}` and
+              `journalctl -b -u {{ $labels.name }}` on def-jam. Once it's
+              fixed and has run, or isn't needed, `sudo systemctl reset-failed
+              {{ $labels.name }}` clears this.
+
+    - name: kubernetes
+      rules:
+        # CI renders and validates for kube_version in scripts/ci/lib.sh, and
+        # lint.sh checks this minor is that one's. A new k3s minor is a decision
+        # (the dotfiles' hosts/def-jam/upgrades.nix); this says CI didn't follow.
+        - alert: KubernetesNotInCI
+          expr: kubernetes_build_info{job="apiserver", minor!="36"}
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "def-jam runs Kubernetes {{ $labels.git_version }}, a minor CI doesn't check against"
+            description: >-
+              Set kube_version in scripts/ci/lib.sh to the running version and
+              the minor in this rule (monitoring/rules/host.yaml) to match, then
+              read what CI's render and validation say.

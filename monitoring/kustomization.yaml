@@ -16,6 +16,7 @@ resources:
   - rules/flux.yaml
   - rules/backup.yaml
   - rules/probes.yaml
+  - rules/host.yaml
   - dashboards
   - flux.yaml
 # Hashed name, so editing the values upgrades the HelmRelease;

@@ -1,8 +1,10 @@
+# bjw-s' app-template, the chart every app here is a HelmRelease of: one source
+# for all of them (each chartRef names this namespace), so one tag moves them all.
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
   name: app-template
-  namespace: lidarr
+  namespace: flux-system
 spec:
   interval: 24h
   url: oci://ghcr.io/bjw-s-labs/helm/app-template
