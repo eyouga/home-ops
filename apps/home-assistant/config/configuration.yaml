@@ -1,11 +1,9 @@
-# Home Assistant's configuration.yaml, mounted over the restored one (which
-# stays untouched on the PVC underneath). It is what the old TrueCharts init
-# container left there, minus that container's work at each start (rewriting
-# recorder.db_url with yq, re-downloading HACS), with two changes:
+# Home Assistant's configuration.yaml, mounted over the copy on the PVC, which
+# stays untouched underneath: editing that copy does nothing.
 # - recorder.db_url comes from the environment (credentials.sops.yaml), so
 #   the password stays in SOPS;
 # - trusted_proxies is k3s's pod network, where Traefik's pods live
-#   (10.42.0.0/16; the old cluster's was 172.16.0.0/16).
+#   (10.42.0.0/16).
 # Home Assistant never writes this file; editing it here rolls the pod.
 
 # Configure a default setup of Home Assistant (frontend, api, etc)
