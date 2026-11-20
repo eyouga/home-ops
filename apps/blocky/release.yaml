@@ -1,8 +1,8 @@
-# LAN DNS: ad blocking, and eyouga.fr answered locally with Traefik's IP
-# (replaces the old k8s_gateway). Stateless; written fresh for the current
-# version (the old 0.23 config schema is gone). The config is config.yml,
-# shared with the second blocky on the Freebox. One replica, no Redis: Redis
-# only syncs the cache and blocking state between replicas.
+# LAN DNS: ad blocking, and eyouga.fr answered locally with Traefik's IP.
+# Stateless. The config is config/config.yml, written to work outside the
+# cluster too. One replica, no Redis: Redis only syncs the cache and blocking
+# state between replicas. A rolling update, unlike the other apps: DNS mustn't
+# drop during a restart, and nothing here holds state.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -91,7 +91,7 @@ spec:
     persistence:
       config:
         type: configMap
-        # Generated from config.yml (kustomization.yaml); kustomizeconfig.yaml
+        # Generated from config/config.yml (kustomization.yaml); kustomizeconfig.yaml
         # swaps in the hashed name, so a config edit rolls the pod.
         name: blocky-config
         globalMounts:

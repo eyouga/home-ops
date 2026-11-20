@@ -1,7 +1,6 @@
-# blocky's whole config. Served to the cluster's blocky as a ConfigMap
-# (kustomization.yaml) and fetched from GitHub raw by the second blocky on
-# the Freebox. Both answer the LAN in no set order, so this file must work
-# on both: no cluster-only names (*.svc.cluster.local), upstreams and
+# blocky's whole config, a ConfigMap for the cluster's blocky
+# (kustomization.yaml). It must also work outside the cluster, for a second
+# blocky on the LAN: no cluster-only names (*.svc.cluster.local), upstreams and
 # bootstrap as IP literals, no secrets (the repo is public).
 ports:
   # Unprivileged ports; the cluster's Service maps 53 onto them.
@@ -21,13 +20,12 @@ upstreams:
 # another resolver (or on itself) to start.
 bootstrapDns:
   - https://1.1.1.1/dns-query
-# eyouga.fr and every subdomain → Traefik, on the LAN only (replaces the old
-# k8s_gateway). Other record types for these names come back empty
-# (filterUnmappedTypes): no AAAA, so IPv6 clients can't prefer Cloudflare's
-# public addresses over Traefik; no MX/TXT (Proton Mail), which nothing on
-# the LAN looks up — mail clients talk to Proton directly. Public DNS at
-# Cloudflare is untouched. Short TTL, so moving Traefik's IP takes effect
-# within minutes.
+# eyouga.fr and every subdomain → Traefik, on the LAN only. Other record
+# types for these names come back empty (filterUnmappedTypes): no AAAA, so
+# IPv6 clients can't prefer Cloudflare's public addresses over Traefik; no
+# MX/TXT (Proton Mail), which nothing on the LAN looks up — mail clients talk
+# to Proton directly. Public DNS at Cloudflare is untouched. Short TTL, so
+# moving Traefik's IP takes effect within minutes.
 customDNS:
   customTTL: 5m
   filterUnmappedTypes: true
@@ -35,7 +33,6 @@ customDNS:
     eyouga.fr: 192.168.1.201
 blocking:
   denylists:
-    # The old server's lists, all still served (checked 2026-11-01).
     ads:
       - https://raw.githubusercontent.com/PolishFiltersTeam/KADhosts/master/KADhosts.txt
       - https://raw.githubusercontent.com/FadeMind/hosts.extras/master/add.Spam/hosts
