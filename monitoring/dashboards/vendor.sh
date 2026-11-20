@@ -14,7 +14,7 @@ cd "$(dirname "$0")"
 # used grafana.com ones for their metrics. NVIDIA ships its own.
 SMARTCTL=https://grafana.com/api/dashboards/22604/revisions/4/download # SMARTctl Exporter Dashboard
 ZFS=https://grafana.com/api/dashboards/24987/revisions/12/download     # ZFS / Overview
-DCGM=https://raw.githubusercontent.com/NVIDIA/dcgm-exporter/4.8.4/grafana/dcgm-exporter-dashboard.json
+DCGM=https://raw.githubusercontent.com/NVIDIA/dcgm-exporter/4.9.0/grafana/dcgm-exporter-dashboard.json
 
 # Applied to all three: drop the import metadata, replace the import input
 # with the variable, and pre-select the chart's datasource.
