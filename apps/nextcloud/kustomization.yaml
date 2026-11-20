@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - networkpolicy.yaml
-  - repository.yaml
   # The `nextcloud` role's password, twice: for CNPG in `databases`, for
   # the app in `nextcloud` (with Valkey's password). Same value in both.
   - db-credentials.sops.yaml

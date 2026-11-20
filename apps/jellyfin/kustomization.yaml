@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - networkpolicy.yaml
-  - repository.yaml
   # The client secret Authelia knows as `jellyfin`.
   - oidc.sops.yaml
   - storage.yaml

@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - networkpolicy.yaml
-  - repository.yaml
   # The `home-assistant` role's password, twice: for CNPG in `databases`, and
   # inside the recorder's URL for the app in `home-assistant`. Same value.
   - db-credentials.sops.yaml

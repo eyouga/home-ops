@@ -62,13 +62,16 @@ Copy `apps/blocky` (no storage) or `apps/sonarr` (with storage). Each app has:
 
 - its own namespace with Pod Security `restricted` (enforce and warn);
 - a default-deny `networkpolicy.yaml`, then only its real paths;
-- a HelmRelease of bjw-s' app-template, with an image pinned by digest, requests
-  and a memory limit on every container, a read-only root, all capabilities dropped;
+- a HelmRelease of bjw-s' app-template, from the one source in
+  `apps/app-template.yaml`, with an image pinned by digest, requests and a memory
+  limit on every container (init containers too), a read-only root, all
+  capabilities dropped, and a Helm timeout longer than its startup probe allows;
 - `route.yaml` only if it has a UI, and a forward-auth or OIDC sign-in (see
   [sso.md](sso.md));
-- config an app only reads in `config/`, as a hashed ConfigMap
-  (`configMapGenerator` + `kustomizeconfig.yaml`), so an edit rolls the pod; files it
-  rewrites are copied in by an init container at each start (Transmission);
+- config an app only reads in `config/`, as a hashed ConfigMap named
+  `<app>-files` and mounted as the volume `files` (`configMapGenerator` +
+  `kustomizeconfig.yaml`), so an edit rolls the pod; files it rewrites are
+  copied in by an init container at each start (Transmission);
 - secrets only as `*.sops.yaml`.
 
 A deviation from this says why in a comment next to it.

@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - networkpolicy.yaml
-  - repository.yaml
   # The `authelia` role's password, twice: for CNPG in `databases`, and in
   # secrets.sops.yaml for the app. Same value in both. All three files, and the
   # OIDC client secrets the apps hold, come from scripts/authelia-secrets.sh.
@@ -14,7 +13,9 @@ resources:
   - release.yaml
   - route.yaml
 # Hashed name, so editing the configuration rolls the pod. That ends everyone's
-# session: they live in memory.
+# session: they live in memory. Hence authelia-config and the volume `config`,
+# not `<app>-files` and `files` like every other app: renaming them would roll
+# it. TEMPORARY: until Authentik replaces Authelia.
 configMapGenerator:
   - name: authelia-config
     namespace: authelia
