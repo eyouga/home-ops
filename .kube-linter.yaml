@@ -1,0 +1,12 @@
+# kube-linter on the apps' rendered charts (scripts/ci/kube-lint.sh): its
+# built-in checks, less three. An exception for one app is an
+# ignore-check.kube-linter.io/<check> annotation on its controller, whose value
+# says why.
+checks:
+  exclude:
+    # app-template declares an app's ports on its Service, not on the container,
+    # so every probe "references an undeclared port". A probe on a wrong port
+    # fails by itself.
+    - liveness-port
+    - readiness-port
+    - startup-port

@@ -21,6 +21,8 @@ spec:
   values:
     controllers:
       authelia:
+        annotations:
+          ignore-check.kube-linter.io/env-var-secret: "the *_SECRET_FILE variables are paths to the mounted secret files, not secrets"
         pod:
           automountServiceAccountToken: false
           securityContext:
