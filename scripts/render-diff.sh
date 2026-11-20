@@ -21,9 +21,9 @@ git -C "$repo" worktree add --quiet --detach "$tmp/base" "$base"
 rm -rf "$tmp/base/scripts/ci"
 cp -R "$repo/scripts/ci" "$tmp/base/scripts/ci"
 
-render() { # <tree> <out> <name>: quiet unless it fails
-  if ! { "$1/scripts/ci/build.sh" "$2" && "$1/scripts/ci/render.sh" "$2"; } >"$tmp/$3.log" 2>&1; then
-    cat "$tmp/$3.log" >&2
+render() { # <tree> <out> <what>: quiet unless it fails
+  if ! { "$1/scripts/ci/build.sh" "$2" && "$1/scripts/ci/render.sh" "$2"; } >"$2.log" 2>&1; then
+    cat "$2.log" >&2
     echo "render-diff: $3 doesn't render" >&2
     exit 2
   fi
