@@ -120,6 +120,10 @@ spec:
             # Info-level alerts stay in Alertmanager's UI.
             - receiver: "null"
               matchers: [severity = info]
+            # Critical: ntfy at high priority, which the phone lets through
+            # when it's set to quiet the rest.
+            - receiver: ntfy-critical
+              matchers: [severity = critical]
         receivers:
           - name: "null"
           - name: ntfy
@@ -129,6 +133,14 @@ spec:
               # readable push).
               - url_file: /etc/alertmanager/secrets/alertmanager-ntfy/url
                 send_resolved: true
+          - name: ntfy-critical
+            webhook_configs:
+              - url_file: /etc/alertmanager/secrets/alertmanager-ntfy/url
+                send_resolved: true
+                http_config:
+                  http_headers:
+                    Priority:
+                      values: [high]
           # Written with `sops edit monitoring/alertmanager-healthchecks.sops.yaml`:
           # `ping` = https://hc-ping.com/<uuid>, `fail` = the same + /fail.
           - name: healthchecks
