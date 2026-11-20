@@ -24,6 +24,7 @@ configMapGenerator:
       - config/zz-k8s.config.php
       - config/redis-session.ini
       - config/opcache-recommended.ini
+      - config/zz-upload-progress.ini
       - config/zz-tune.conf
 configurations:
   - kustomizeconfig.yaml

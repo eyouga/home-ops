@@ -333,6 +333,9 @@ spec:
               - path: /usr/local/etc/php/conf.d/opcache-recommended.ini
                 subPath: opcache-recommended.ini
                 readOnly: true
+              - path: /usr/local/etc/php/conf.d/zz-upload-progress.ini
+                subPath: zz-upload-progress.ini
+                readOnly: true
               - path: /usr/local/etc/php-fpm.d/zz-tune.conf
                 subPath: zz-tune.conf
                 readOnly: true
