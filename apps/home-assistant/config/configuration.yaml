@@ -23,10 +23,11 @@ http:
   use_x_forwarded_for: true
   trusted_proxies:
     - 10.42.0.0/16
-# Sign-in through Authelia (custom_components/auth_oidc, release.yaml's init
-# container); its `admins` policy decides who gets here. The password provider stays
-# (without it, this integration's login flow is reported to break), with a random
-# password nobody has: `hass --script auth change_password` is the way back in.
+# Sign-in through Authelia (custom_components/auth_oidc, installed by
+# install-oidc.py); its `admins` policy decides who gets here. The password
+# provider stays (without it, this integration's login flow is reported to
+# break), with a random password nobody has:
+# `hass --script auth change_password` is the way back in.
 auth_oidc:
   client_id: home-assistant
   client_secret: !env_var OIDC_CLIENT_SECRET

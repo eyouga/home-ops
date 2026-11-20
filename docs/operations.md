@@ -37,11 +37,11 @@ flush-queues` before, `forgejo doctor check --all` after. The *arrs go straight 
 the current stable: their SQLite migrates on start.
 
 **A plugin pinned by version and checksum** (Jellyfin's SSO plugin in
-`apps/jellyfin/config/install-sso.py`, Home Assistant's `auth_oidc` in its
-`release.yaml`): Renovate moves the version, CI stays red until the SHA-256 is
-committed, and prints the one the new URL serves. Compare it with upstream's
-release. Check compatibility first: Jellyfin's `targetAbi`, Nextcloud's
-`user_oidc` `max-version`.
+`apps/jellyfin/config/install-sso.py`, Home Assistant's `auth_oidc` in
+`apps/home-assistant/config/install-oidc.py`): Renovate moves the version, CI
+stays red until the SHA-256 is committed, and prints the one the new URL serves.
+Compare it with upstream's release. Check compatibility first: Jellyfin's
+`targetAbi`, Nextcloud's `user_oidc` `max-version`.
 
 ## Rollback
 

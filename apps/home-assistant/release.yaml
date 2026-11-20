@@ -39,42 +39,12 @@ spec:
             seccompProfile:
               type: RuntimeDefault
         initContainers:
-          # auth_oidc (hass-oidc-auth), a custom integration, at a pinned release.
-          # Check it still fits before each Home Assistant bump.
+          # config/install-oidc.py: auth_oidc, at its pinned release.
           auth-oidc:
             image: &image
               repository: docker.io/homeassistant/home-assistant
               tag: 2026.11.2@sha256:493a07e8f6530fc640223f4a0a5248f20a61ca2f718bb1d31efbf08a2c5ea28f
-            command:
-              - python3
-              - -B
-              - -c
-              - |
-                import hashlib, io, json, os, shutil, time, urllib.request, zipfile
-                VERSION = "1.2.1"
-                SHA256 = "e5badaaacaa63cfd6fe733924a05e76d75058836190398598fb24de57cd47ccd"
-                URL = f"https://github.com/christiaangoossens/hass-oidc-auth/releases/download/v{VERSION}/hass-oidc-auth.zip"
-                TARGET = "/config/custom_components/auth_oidc"
-                def installed():
-                    try:
-                        return json.load(open(TARGET + "/manifest.json"))["version"]
-                    except OSError:
-                        return None
-                if installed() != VERSION:
-                    for attempt in range(30):  # kube-router admits a new pod a moment after it starts
-                        try:
-                            data = urllib.request.urlopen(URL, timeout=30).read()
-                            break
-                        except OSError as e:
-                            print("waiting for the network:", e, flush=True)
-                            time.sleep(2)
-                    else:
-                        raise SystemExit("could not download auth_oidc")
-                    if hashlib.sha256(data).hexdigest() != SHA256:
-                        raise SystemExit("auth_oidc's checksum doesn't match")
-                    shutil.rmtree(TARGET, ignore_errors=True)
-                    zipfile.ZipFile(io.BytesIO(data)).extractall(TARGET)
-                print("auth_oidc", VERSION, "in place", flush=True)
+            command: [python3, -B, /files/install-oidc.py]
             resources:
               requests:
                 cpu: 10m
@@ -155,14 +125,19 @@ spec:
         retain: true
         globalMounts:
           - path: /config
-      # config/configuration.yaml (kustomization.yaml's configMapGenerator).
+      # config/ (kustomization.yaml's configMapGenerator).
       files:
         type: configMap
         name: home-assistant-files
-        globalMounts:
-          - path: /config/configuration.yaml
-            subPath: configuration.yaml
-            readOnly: true
+        advancedMounts:
+          home-assistant:
+            app:
+              - path: /config/configuration.yaml
+                subPath: configuration.yaml
+                readOnly: true
+            auth-oidc:
+              - path: /files
+                readOnly: true
       tmp:
         type: emptyDir
         globalMounts:

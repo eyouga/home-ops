@@ -61,7 +61,7 @@
     {
       customType: "regex",
       description: "Home Assistant's auth_oidc",
-      managerFilePatterns: ["/^apps/home-assistant/release\\.yaml$/"],
+      managerFilePatterns: ["/^apps/home-assistant/config/install-oidc\\.py$/"],
       matchStrings: ['VERSION = "(?<currentValue>[^"]+)"'],
       depNameTemplate: "christiaangoossens/hass-oidc-auth",
       datasourceTemplate: "github-releases",

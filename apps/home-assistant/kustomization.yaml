@@ -20,5 +20,6 @@ configMapGenerator:
     namespace: home-assistant
     files:
       - config/configuration.yaml
+      - config/install-oidc.py
 configurations:
   - kustomizeconfig.yaml
