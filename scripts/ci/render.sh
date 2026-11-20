@@ -7,8 +7,7 @@
 # It doesn't prove the app starts, only that Flux could install it.
 source "$(dirname "$0")/lib.sh"
 out=${1:?directory build.sh wrote to}
-# What the cluster runs and offers: `helm template` can't ask it.
-kube_version=1.36.5
+# What the cluster offers besides kube_version (lib.sh): `helm template` can't ask it.
 api_versions=(monitoring.coreos.com/v1 gateway.networking.k8s.io/v1 cert-manager.io/v1 postgresql.cnpg.io/v1 metallb.io/v1beta1 traefik.io/v1alpha1)
 
 charts=$(mktemp -d) tmp=$(mktemp -d)

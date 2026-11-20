@@ -69,7 +69,7 @@
     },
     {
       customType: "regex",
-      description: "The CRD schemas CI validates against",
+      description: "The schemas CI validates against",
       managerFilePatterns: ["/^scripts/ci/validate\\.sh$/"],
       matchStrings: ["# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) currentValue=(?<currentValue>\\S+)\\n[a-z_]+=(?<currentDigest>[0-9a-f]{40})"],
     },
@@ -206,8 +206,8 @@
       minimumReleaseAge: "3 days",
     },
     {
-      description: "The CRD schemas CI validates against",
-      matchPackageNames: ["https://github.com/datreeio/CRDs-catalog"],
+      description: "The schemas CI validates against",
+      matchPackageNames: ["https://github.com/datreeio/CRDs-catalog", "https://github.com/yannh/kubernetes-json-schema"],
       schedule: ["on saturday"],
       automerge: true,
     },
