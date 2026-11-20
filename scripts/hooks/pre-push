@@ -17,7 +17,10 @@ re='^(Revert "|Merge |[a-z0-9][a-z0-9._/-]*( \([a-z0-9_-]+\))?(, [a-z0-9._/-]+)*
 bad=0 shas=()
 while read -r _ sha _ remote; do
   [ "$sha" != "$zero" ] || continue # a deletion
-  if [ "$remote" = "$zero" ]; then revs=("$sha" --not --remotes); else revs=("$remote..$sha"); fi
+  # New to the remote: neither on this branch there nor on any branch it has (a
+  # merge of main brings in commits that are already there).
+  revs=("$sha" --not --remotes)
+  [ "$remote" = "$zero" ] || revs+=("$remote")
   while IFS= read -r subject; do
     if ! [[ $subject =~ $re ]]; then
       echo "pre-push: not 'scope: what': $subject" >&2
