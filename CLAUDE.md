@@ -16,7 +16,7 @@ in README.md and docs/.
   CLAUDE.md: read it before changing anything there.
 - The open list is local, on the owner's Mac:
   `~/.dotfiles/.nix/hosts/def-jam/MIGRATION.md`. Read its §1 and §2 before def-jam work.
-- TEMPORARY: until the migration's last phase (Phase 12) is done: no Learn-by-Doing
+- TEMPORARY: until the migration's last phase (Phase 11) is done: no Learn-by-Doing
   exercises or `TODO(human)` here, whatever the output style asks. Decide,
   implement, verify, explain briefly.
 
