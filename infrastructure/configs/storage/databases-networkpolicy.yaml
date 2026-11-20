@@ -1,0 +1,42 @@
+# Default deny, then the real paths. Who reaches each cluster is in its own
+# policy (apps/<cluster>/database.yaml); where the dumps go, in pg-dump's
+# (apps/pg-dump/networkpolicy.yaml). Postgres itself reaches only kube-dns and
+# the API server, which CNPG's instance manager watches.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: databases
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cnpg
+  namespace: databases
+spec:
+  # The instances, and the jobs that create them (initdb, join).
+  podSelector:
+    matchExpressions:
+      - { key: cnpg.io/cluster, operator: Exists }
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { port: 53, protocol: UDP }
+        - { port: 53, protocol: TCP }
+    # The API server, as the policy sees it after the kubernetes Service's DNAT:
+    # the node's address.
+    - to:
+        - ipBlock:
+            cidr: 192.168.1.80/32
+      ports:
+        - { port: 6443, protocol: TCP }
