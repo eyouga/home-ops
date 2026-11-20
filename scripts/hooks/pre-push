@@ -4,6 +4,9 @@
 # Switch it on once per clone: git config core.hooksPath scripts/hooks
 # .dotfiles has the same hook (.nix/scripts/hooks), with its own check command.
 set -euo pipefail
+# Git exports these to hooks, and from a linked worktree they'd point the checks'
+# own git calls at the wrong tree. Git runs hooks from the worktree's root.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
 check() { # <tree>
   nix develop "$1" -c "$1/scripts/ci/all.sh"
 }
