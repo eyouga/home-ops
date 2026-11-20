@@ -179,7 +179,7 @@
     },
     {
       description: "Home Assistant jump",
-      matchPackageNames: ["homeassistant/home-assistant", "docker.io/homeassistant/home-assistant"],
+      matchPackageNames: ["docker.io/homeassistant/home-assistant"],
       matchUpdateTypes: ["major"],
       draftPR: true,
       labels: ["renovate", "rung"],
