@@ -48,6 +48,12 @@ spec:
               repository: ghcr.io/home-operations/transmission
               tag: 4.1.4@sha256:4d7179443512c84e564e2c8c5e5f17b0db069f63a48eded5f0e371f7429a7463
             command: [cp, /settings/settings.json, /config/settings.json]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 16Mi
+              limits:
+                memory: 64Mi
             securityContext: &securityContext
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
