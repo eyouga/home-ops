@@ -7,6 +7,8 @@
   extends: ["config:recommended", "helpers:pinGitHubActionDigests"],
   timezone: "Europe/Paris",
   semanticCommits: "disabled",
+  // Its commits' scope, like everyone's here (CONTRIBUTING.md): "renovate: Update …".
+  commitMessagePrefix: "renovate:",
   labels: ["renovate"],
   prHourlyLimit: 4,
   // No cap on open PRs: with one, PRs waiting for a person stop the automatic
