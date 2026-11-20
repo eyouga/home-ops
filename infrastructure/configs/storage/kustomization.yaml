@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - fast.yaml
   - databases.yaml
+  - databases-networkpolicy.yaml
