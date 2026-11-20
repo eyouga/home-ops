@@ -2,7 +2,15 @@
 # and Jellyfin's known proxies.
 # The plugin isn't in Jellyfin's catalogue, and the upstream repository (9p4) is
 # archived; this is MaxRink's fork, the one built for Jellyfin 12.
-import glob, hashlib, io, os, re, shutil, time, urllib.request, zipfile
+import glob
+import hashlib
+import io
+import os
+import re
+import shutil
+import time
+import urllib.request
+import zipfile
 
 VERSION = "6.1.0.0"
 SHA256 = "6311d6b16e89a91e44ce9b5a32c09d28eda292a11b75cd6b942d7bc62664cd00"
@@ -32,12 +40,16 @@ with open("/files/SSO-Auth.xml") as f:
 # SSO-only login only covers linked accounts: it has to survive this rewrite.
 try:
     with open("/config/plugins/configurations/SSO-Auth.xml") as f:
-        links = re.search(r"<CanonicalLinks>.*?</CanonicalLinks>", f.read(), re.S)
+        links = re.search(r"<CanonicalLinks>.*?</CanonicalLinks>", f.read(), re.DOTALL)
 except FileNotFoundError:
     links = None
 if links:
     xml = xml.replace("<CanonicalLinks />", links.group(0))
-fd = os.open("/config/plugins/configurations/SSO-Auth.xml", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+fd = os.open(
+    "/config/plugins/configurations/SSO-Auth.xml",
+    os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+    0o600,
+)
 with os.fdopen(fd, "w") as f:
     f.write(xml)
 shutil.copyfile("/files/branding.xml", "/config/config/branding.xml")
@@ -46,7 +58,12 @@ shutil.copyfile("/files/branding.xml", "/config/config/branding.xml")
 with open("/config/config/network.xml") as f:
     network = f.read()
 known = "<KnownProxies><string>10.42.0.0/16</string></KnownProxies>"
-network, n = re.subn(r"<KnownProxies\s*/>|<KnownProxies>.*?</KnownProxies>", known, network, flags=re.S)
+network, n = re.subn(
+    r"<KnownProxies\s*/>|<KnownProxies>.*?</KnownProxies>",
+    known,
+    network,
+    flags=re.DOTALL,
+)
 if n != 1:
     raise SystemExit("KnownProxies not found in network.xml")
 with open("/config/config/network.xml", "w") as f:
