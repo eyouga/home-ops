@@ -4,3 +4,7 @@ keys.txt
 # sops -d output, if ever written to disk by hand
 *.dec.yaml
 *.decrypted.*
+
+# Claude Code: local settings and worktrees, per machine.
+.claude/settings.local.json
+.claude/worktrees/

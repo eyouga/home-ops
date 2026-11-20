@@ -45,7 +45,8 @@ if ! out=$(nginx -t -p "$ng" -e "$ng/log/error.log" -c "$ng/nginx.conf" 2>&1); t
 fi
 
 # Open work is done, marked TEMPORARY with its end, or on the open list.
-if git grep -n -w -E 'TODO|FIXME' -- . "$generated" "$mine" ':!monitoring/dashboards/*.json'; then
+# CONTRIBUTING.md and CLAUDE.md state this rule, so they name the words.
+if git grep -n -w -E 'TODO|FIXME' -- . "$generated" "$mine" ':!monitoring/dashboards/*.json' ':!CONTRIBUTING.md' ':!CLAUDE.md'; then
   fail "TODO or FIXME: do it, mark it 'TEMPORARY: until <condition>', or put it on the open list"
 fi
 if git grep -n 'TEMPORARY' -- . "$generated" "$mine" | grep -v 'TEMPORARY: until '; then
