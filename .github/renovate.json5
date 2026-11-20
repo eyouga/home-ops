@@ -179,8 +179,10 @@
     },
     {
       description: "Home Assistant jump",
+      // Calendar versions: a "major" is a new year, a "minor" a monthly release.
+      // Only a patch stays inside a hop.
       matchPackageNames: ["docker.io/homeassistant/home-assistant"],
-      matchUpdateTypes: ["major"],
+      matchUpdateTypes: ["major", "minor"],
       draftPR: true,
       labels: ["renovate", "rung"],
       prBodyNotes: ["**Don't merge.** `scripts/home-assistant-rung.sh <ver> <digest>`, ~6-month hops. Compare its command with the image's `/etc/services.d/home-assistant/run` first."],
