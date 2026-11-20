@@ -21,8 +21,8 @@ metadata:
   namespace: nextcloud
 spec:
   interval: 1h
-  # Helm's 5 minutes would call it failed mid-way: a new image copies the code and runs `occ upgrade` before the pod is Ready.
-  timeout: 30m
+  # The startup probe allows 30 minutes (code copy and `occ upgrade`); 5 more to pull the image.
+  timeout: 35m
   chartRef:
     kind: OCIRepository
     name: app-template

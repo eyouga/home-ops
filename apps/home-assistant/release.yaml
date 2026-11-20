@@ -15,6 +15,8 @@ metadata:
   namespace: home-assistant
 spec:
   interval: 1h
+  # The startup probe allows 10 minutes (recorder migrations); 5 more to pull the image.
+  timeout: 15m
   chartRef:
     kind: OCIRepository
     name: app-template

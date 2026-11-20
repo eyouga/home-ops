@@ -12,6 +12,8 @@ metadata:
   namespace: authelia
 spec:
   interval: 1h
+  # The startup probe allows 5 minutes (migrations); 5 more to pull the image.
+  timeout: 10m
   chartRef:
     kind: OCIRepository
     name: app-template
