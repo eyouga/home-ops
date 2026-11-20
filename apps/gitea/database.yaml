@@ -1,7 +1,6 @@
-# Gitea's Postgres, in the `databases` namespace like every CNPG cluster (its
-# volume lands on fast/k8s-db). Restored from the old PG 15 into PG 16 in Phase 5;
-# PG 18 since Phase 6 (CNPG's in-place major upgrade: changing the image's
-# major triggers pg_upgrade). The `gitea` role's password comes from
+# Forgejo's Postgres, in the `databases` namespace like every CNPG cluster (its
+# volume lands on fast/k8s-db). A major upgrade is scripts/postgres-major.sh.
+# The `gitea` role's password comes from
 # db-credentials.sops.yaml, the same value as the app's credentials.sops.yaml,
 # not from CNPG's generated `gitea-app` Secret (it can't cross namespaces).
 apiVersion: postgresql.cnpg.io/v1

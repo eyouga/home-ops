@@ -1,7 +1,7 @@
 # Default deny, then: the web UI and git over HTTPS through Traefik, metrics
 # for Prometheus, its Postgres, kube-dns, and the internet (repository
-# migrations and mirrors). SSH (2222) listens in the pod but, as on the old
-# server, nothing exposes it.
+# migrations and mirrors). SSH (2222) listens in the pod but
+# nothing exposes it.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

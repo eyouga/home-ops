@@ -10,7 +10,7 @@
   labels: ["renovate"],
   prHourlyLimit: 4,
   // No cap on open PRs: with one, PRs waiting for a person stop the automatic
-  // tiers below from even being created (20 did, 2026-11-16).
+  // tiers below from even being created.
   prConcurrentLimit: 0,
 
   // Renovate merges by itself, after seeing every check green on the commit, not

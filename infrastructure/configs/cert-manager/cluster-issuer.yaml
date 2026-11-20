@@ -1,4 +1,4 @@
-# `cert`, as on the old cluster. DNS-01 through Cloudflare, so wildcards work
+# The ClusterIssuer `cert`: DNS-01 through Cloudflare, so wildcards work
 # and nothing has to be reachable from the internet to get a certificate.
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer

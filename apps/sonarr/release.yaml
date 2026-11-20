@@ -1,12 +1,9 @@
-# Sonarr, restored at the old server's 4.0.4 (Phase 5), then moved straight
-# to current (Phase 6; its SQLite migrates forward on start).
+# Sonarr. Its SQLite migrates forward on start.
 # home-operations builds from the develop channel: pin only builds whose
-# commit is an upstream stable release (4.0.20.3012 = stable 4.0.20.3014).
-# Config from the rescued /mnt/Bim/apps/sonarr/config; uid 568
-# like on TrueNAS, so the restored files need no chown. Since the one-dataset move
-# (Phase 6, 2026-11-02) torrents and the library share one /data volume
-# (data/torrents/<category>, data/media/series), so imports are hardlinks; the
-# root folder and every path in the database were moved there by API.
+# commit is an upstream stable release (its build number can sit a few below
+# upstream's).
+# uid 568 owns its config. Torrents and the library share one /data volume
+# (data/torrents/<category>, data/media/series), so imports are hardlinks.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:

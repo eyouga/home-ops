@@ -1,4 +1,4 @@
-# nextcloud.eyouga.fr, as on the old server; nginx in the pod serves it and
+# nextcloud.eyouga.fr; nginx in the pod serves it and
 # passes /push/ on to notify_push.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

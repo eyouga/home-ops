@@ -1,7 +1,5 @@
 # FlareSolverr: Prowlarr's proxy for Cloudflare-protected indexers.
-# Stateless, so it runs the current release from day one (Phase 5's
-# old-version rule only matters for apps with data). No route: only
-# Prowlarr calls it.
+# Stateless. No route: only Prowlarr calls it.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:

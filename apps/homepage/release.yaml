@@ -1,13 +1,11 @@
 # homepage, the landing page at the apex (behind Authelia, route.yaml). The
-# old server's install was never set up (the image's samples), so nothing was
-# carried over: the whole configuration is config/ in git (settings, services,
+# whole configuration is config/ in git (settings, services,
 # widgets, bookmarks), with no state and no PVC. uid 568 and a read-only root;
 # /app/config is an emptyDir because homepage copies skeletons of the files it
 # doesn't find there (docker.yaml, kubernetes.yaml, ...), all left empty.
 #
-# Left out on purpose: the old chart's `kubernetes.yaml: mode: cluster` and its
-# cluster-wide read access to pods, nodes and ingresses: nothing here uses them,
-# so the pod gets no API token.
+# No `kubernetes.yaml: mode: cluster` and no cluster-wide read access to pods,
+# nodes and ingresses: nothing here uses them, so the pod gets no API token.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:

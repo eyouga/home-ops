@@ -1,24 +1,22 @@
-# Transmission, replacing qBittorrent (Phase 6, decided 2026-11-01): its
-# settings live in git. config/settings.json (snake_case, the 4.1 format)
-# is copied over /config/settings.json by an init container at every start,
-# so the file in git always wins: Transmission rewrites its copy on exit and
-# whenever the web UI or RPC changes a setting, and those changes last only
+# Transmission. Its settings live in git: config/settings.json (snake_case, the
+# 4.1 format) is copied over /config/settings.json by an init container at every
+# start, so the file in git always wins: Transmission rewrites its copy on exit
+# and whenever the web UI or RPC changes a setting, and those changes last only
 # until the next restart. TR_SAVE_VERSION_FORMAT=5 makes it write the same
 # snake_case keys back. The image templates settings.json from TRANSMISSION__*
 # env only when such variables exist; there are none here.
 #
-# Choices in settings.json, carried over from qBittorrent unless said:
+# Choices in settings.json:
 # - everything saves under /data/torrents (default); the *arrs add their
-#   category subdirectory (tv-sonarr, radarr, lidarr, prowlarr), the layout
-#   qBittorrent's categories made. /data is the one tank/data volume the
-#   *arrs mount too, so their imports are hardlinks. No incomplete dir.
+#   category subdirectory (tv-sonarr, radarr, lidarr, prowlarr), and the seeded
+#   torrents' paths depend on it. /data is the one tank/data volume the *arrs
+#   mount too, so their imports are hardlinks. No incomplete dir.
 # - peers on 6881 (the .203 LoadBalancer below), no UPnP/NAT-PMP, no LPD
 #   (nothing to discover from a pod network).
-# - the old bandwidth schedule: 500 kB/s down / 50 kB/s up from 06:00 to
-#   midnight every day, unlimited overnight (alt_speed_time_*; the end before
-#   the begin wraps past midnight).
-# - no ratio or idle limit. Queue: 5 downloads at once (qBittorrent's 0 was
-#   Phase 5's freeze, not a setting to keep), seeding unqueued.
+# - a bandwidth schedule: 500 kB/s down / 50 kB/s up from 06:00 to midnight
+#   every day, unlimited overnight (alt_speed_time_*; the end before the begin
+#   wraps past midnight).
+# - no ratio or idle limit. Queue: 5 downloads at once, seeding unqueued.
 # - RPC without a login and without the IP allowlist: the NetworkPolicy is
 #   the allowlist (Traefik, the *arrs, Prowlarr, Home Assistant). The Host
 #   allowlist stays on (DNS-rebinding guard); IP Hosts, like the probes',
@@ -91,7 +89,7 @@ spec:
         ports:
           http:
             port: 9091
-      # Peers, on the IP and port qBittorrent had. Reachable from outside
+      # Peers, on a fixed IP and port. Reachable from outside
       # only if the router forwards 6881 to it.
       torrent:
         controller: transmission

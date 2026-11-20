@@ -1,16 +1,13 @@
-# Home Assistant, restored at the old server's 2024.5.5 (Phase 5), then moved
-# in ~6-month hops to current (Phase 6: deprecations last about that long).
-# /config is the rescued home-assistant-config PVC; the recorder's history is
+# Home Assistant, upgraded in ~6-month hops (scripts/home-assistant-rung.sh):
+# deprecations last about that long. /config is a PVC; the recorder's history is
 # in Postgres (database.yaml).
 #
-# The old pod ran the image's s6-overlay init as root (PUID 568 there is a
-# linuxserver convention this image ignores). Here it runs as 568 with a
-# read-only root: the command is what s6's home-assistant service ran
-# (`python3 -P -m homeassistant --config /config` from /config, mimalloc:
-# check /etc/services.d/home-assistant/run on every bump, it changed in
-# 2026.10), without s6, which needs root. Tested on an empty /config first:
-# it starts clean, and installs nothing (every integration in use ships its
-# requirements in the image; anything else would land in /config/deps).
+# It runs as 568 with a read-only root, without the image's s6-overlay init,
+# which needs root: the command is what s6's home-assistant service runs
+# (`python3 -P -m homeassistant --config /config` from /config, mimalloc), so
+# check /etc/services.d/home-assistant/run on every bump. It installs nothing:
+# every integration in use ships its requirements in the image (anything else
+# would land in /config/deps).
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -112,7 +109,7 @@ spec:
                   timeoutSeconds: 5
                   failureThreshold: 5
               readiness: *probe
-              # Recorder schema migrations run at start (Phase 6).
+              # Recorder schema migrations run at start.
               startup:
                 enabled: true
                 custom: true

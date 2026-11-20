@@ -1,4 +1,4 @@
-# Advertises the RTX 2070 as `nvidia.com/gpu` (Jellyfin in Phase 5).
+# Advertises the RTX 2070 as `nvidia.com/gpu`, for Jellyfin's transcoding.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:

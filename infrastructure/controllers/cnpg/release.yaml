@@ -17,8 +17,7 @@ spec:
   upgrade:
     crds: CreateReplace
   values:
-    # The operator's own metrics. Each database Cluster gets its own
-    # PodMonitor in Phase 5 (`monitoring.enablePodMonitor`).
+    # The operator's own metrics. Each database.yaml carries its own PodMonitor.
     monitoring:
       podMonitorEnabled: true
       # The CNPG dashboard, loaded by Grafana's sidecar from any namespace.

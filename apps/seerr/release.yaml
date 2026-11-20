@@ -1,6 +1,5 @@
-# Seerr (Overseerr + Jellyseerr merged, 2026-02), the one request UI: a request
-# here goes to Sonarr or Radarr, which grab it. New in Phase 6, nothing to
-# restore. Its settings are UI-made (a first-run wizard needing a Jellyfin admin
+# Seerr, the one request UI: a request here goes to Sonarr or Radarr, which
+# grab it. Its settings are UI-made (a first-run wizard needing a Jellyfin admin
 # login, then settings.json + SQLite in /app/config), hence the PVC. uid 1000,
 # the image's `node`.
 #

@@ -1,8 +1,7 @@
 # Home Assistant's Postgres (the recorder: states, events, statistics), in
 # the `databases` namespace like every CNPG cluster (its volume lands on
-# fast/k8s-db). Restored from the old PG 16 in Phase 5; PG 18 since
-# Phase 6 (CNPG's in-place major upgrade: changing the image's major triggers
-# pg_upgrade). Role and database keep their old name, `home-assistant`.
+# fast/k8s-db). A major upgrade is scripts/postgres-major.sh. Role and
+# database are `home-assistant`.
 # The role's password comes from db-credentials.sops.yaml, the same value as
 # in the app's credentials.sops.yaml, not from CNPG's generated
 # `home-assistant-app` Secret (it can't cross namespaces).

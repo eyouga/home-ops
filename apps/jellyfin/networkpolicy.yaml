@@ -1,7 +1,6 @@
-# Default deny, then: the web UI and apps through Traefik, kube-dns, and the
-# internet for metadata, artwork, subtitles and plugins. Overseerr and
-# homepage get their ingress rules here when they arrive. No DLNA/discovery
-# (multicast needs the host network).
+# Default deny, then: the web UI and apps through Traefik, Seerr, kube-dns,
+# Authelia through Traefik, and the internet for metadata, artwork, subtitles
+# and plugins. No DLNA/discovery (multicast needs the host network).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

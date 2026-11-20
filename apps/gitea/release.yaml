@@ -1,17 +1,14 @@
-# Forgejo, ex-Gitea: restored at the old server's Gitea 1.21.3 (Phase 5), then
-# switched in place (Phase 6, decided 2026-11-01). Forgejo only migrates from
-# Gitea <= 1.22 through v10.0.x, then any later version. Tracks the LTS line.
-# Namespace, PVC, database and these names stay `gitea`: renaming them would
-# change nothing for anyone and risk the data. Its job: pull mirrors of the
-# GitHub repos, as an extra copy; nothing the cluster needs to start may live
-# here. Its /data is the rescued /mnt/Bim/apps/gitea, uid 1000 (the
-# rootless image's `git` user, not 568). The env below is the old chart's
-# gitea-env, so app.ini (/data/gitea/conf/app.ini) and every path in it hold
-# unchanged; Forgejo still reads GITEA_*, and its docs ask for FORGEJO_* copies
-# in case that ends. The image's entrypoint runs environment-to-ini at each start,
-# which writes the GITEA__section__KEY variables into app.ini: the new
-# database's address and password (credentials.sops.yaml), and an in-memory
-# cache in place of the old memcached.
+# Forgejo, on the LTS line. Its job: pull mirrors of the GitHub repos, as an
+# extra copy; nothing the cluster needs to start may live here.
+# TEMPORARY: until the rename to forgejo: namespace, PVC, database and these
+# names are still `gitea`, Forgejo's former name.
+# /data belongs to uid 1000, the rootless image's `git` user (not 568). app.ini
+# (/data/gitea/conf/app.ini) on the PVC holds the paths the env below sets, so
+# the env keeps them true; Forgejo still reads GITEA_*, and its docs ask for
+# FORGEJO_* copies in case that ends. The image's entrypoint runs
+# environment-to-ini at each start, which writes the GITEA__section__KEY
+# variables into app.ini: the database's address and password
+# (credentials.sops.yaml), and an in-memory cache.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -44,7 +41,6 @@ spec:
               tag: 15.0.11-rootless@sha256:3cd6bc2b74c87cbde0a0fd527c9665cb416f5a0540dee54fe5afb3fa2df9f40c
             env:
               TZ: Europe/Paris
-              # The old chart's gitea-env (minus its unused admin bootstrap).
               GITEA_WORK_DIR: /data
               GITEA_CUSTOM: /data/gitea
               GITEA_APP_INI: /data/gitea/conf/app.ini
@@ -100,7 +96,7 @@ spec:
                   timeoutSeconds: 5
                   failureThreshold: 5
               readiness: *probe
-              # Database migrations run before the server listens (Phase 6).
+              # Database migrations run before the server listens.
               startup:
                 enabled: true
                 custom: true
@@ -150,7 +146,7 @@ spec:
         retain: true
         globalMounts:
           - path: /data
-      # The image's HOME (/var/lib/gitea/git); scratch, as on the old server.
+      # The image's HOME (/var/lib/gitea/git); scratch.
       varlib:
         type: emptyDir
         globalMounts:

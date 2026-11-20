@@ -2,7 +2,7 @@
 # the `fast` StorageClass, and Grafana's HTTPRoute needs the Gateway and the
 # wildcard certificate. apps/ does not wait for this layer: the CRDs its
 # ServiceMonitors need come from infra-crds-prometheus, and a broken
-# dashboard must not hold back a restore.
+# dashboard must not hold back the apps.
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:

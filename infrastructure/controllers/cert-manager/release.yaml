@@ -17,8 +17,8 @@ spec:
       enabled: true
       # Uninstalling the chart must not delete every Certificate with it.
       keep: true
-    # DNS-01 self-checks ask public resolvers, never the LAN's: blocky will
-    # answer eyouga.fr locally (split horizon) and never sees the TXT record.
+    # DNS-01 self-checks ask public resolvers, never the LAN's: blocky
+    # answers eyouga.fr locally (split horizon) and never sees the TXT record.
     dns01RecursiveNameservers: 1.1.1.1:53,9.9.9.9:53
     dns01RecursiveNameserversOnly: true
     prometheus:

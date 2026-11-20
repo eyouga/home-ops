@@ -2,7 +2,7 @@
 # Assistant to its Postgres, kube-dns, Transmission's RPC, Jellyfin's URL via
 # Traefik, and the internet (weather, radio browser, Google TTS, the
 # companion app's push relay). No host network: nothing it uses talks to LAN
-# devices, and the old pod had none either (its DHCP watcher already failed).
+# devices.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -52,7 +52,7 @@ spec:
               cnpg.io/cluster: home-assistant
       ports:
         - { port: 5432, protocol: TCP }
-    # The Transmission integration (replaced qBittorrent's in Phase 6).
+    # The Transmission integration.
     - to:
         - namespaceSelector:
             matchLabels:

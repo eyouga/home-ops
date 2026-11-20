@@ -1,22 +1,19 @@
-# Nextcloud, restored at the old server's 28.0.2 (Phase 5) on the official
-# fpm image (tccr.io's is gone), then stepped one major at a time to current
-# (Phase 6, 2026-11-02: 28.0.14 → 29 → … → 35). On a new image the
-# entrypoint copies the code into the nextcloud-html PVC and runs `occ
-# upgrade`; it refuses to skip a major. Per rung: snapshot fast/k8s +
-# fast/k8s-db, CronJobs suspended, bump, then app updates, missing indices,
-# the expensive repair, and a pod restart so notify_push runs the updated
-# binary (scripts/nextcloud-rung.sh). config.php is
-# the restored nextcloud-config PVC, the files are on tank (storage.yaml). Everything runs as 568 like on TrueNAS, so
-# nothing is chown-ed (the image's www-data is 33).
+# Nextcloud on the official fpm image. On a new image the entrypoint copies the
+# code into the nextcloud-html PVC and runs `occ upgrade`; it refuses to skip a
+# major. Per rung: snapshot fast/k8s + fast/k8s-db, CronJobs suspended, bump,
+# then app updates, missing indices, the expensive repair, and a pod restart so
+# notify_push runs the updated binary (scripts/nextcloud-rung.sh). config.php is
+# on the nextcloud-config PVC, the files are on tank (storage.yaml). Everything
+# runs as 568, so nothing is chown-ed (the image's www-data is 33).
 #
-# The old release's parts, and what became of them:
+# Its parts:
 # - fpm + nginx + notify_push: one pod (`nextcloud`), talking over 127.0.0.1;
-#   the old nginx.conf (config/). notify_push is the binary shipped in the
+#   nginx.conf is in config/. notify_push is the binary shipped in the
 #   notify_push app (custom_apps), so it always matches the app's version.
 # - cron.php every 5 min and `occ preview:pre-generate` every 30: CronJobs.
 # - redis (sessions, locking, cache): Valkey, empty at start, no disk.
-# - imaginary: dropped (its image is gone; zz-k8s.config.php).
-# - CNPG + its PgBouncer pooler: database.yaml, no pooler.
+# - Postgres: database.yaml, without a pooler.
+# - no Imaginary: previews are made by PHP's imagick (zz-k8s.config.php).
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -54,7 +51,7 @@ spec:
               tag: 35.0.3-fpm@sha256:eaf746a8ad73b8eda91704de8d51b68d93aa2e778bcb96ee81df720abd2f076a
             env: &env
               TZ: Europe/Paris
-              # Used by the image's nextcloud.ini (the old chart's values).
+              # Used by the image's nextcloud.ini.
               PHP_MEMORY_LIMIT: 1G
               PHP_UPLOAD_LIMIT: 10G
               # Imagick's fontconfig wants a writable cache; the root is
@@ -358,7 +355,7 @@ spec:
           previews:
             app: [{path: /tmp}]
       # nginx.conf's *_temp_path dirs; nginx creates them but not their
-      # parent (the old chart's nginx-temp).
+      # parent.
       nginx-temp:
         type: emptyDir
         advancedMounts:
@@ -371,7 +368,7 @@ spec:
             app: [{path: /data}]
       # storage.yaml. Only tank/data's torrents/ is an External Storage
       # mount ("Torrents"); the library (media/) is Jellyfin's, and its files
-      # are mostly hardlinks of these anyway ("Media" dropped 2026-11-02).
+      # are mostly hardlinks of these anyway.
       # Read-only: Transmission seeds from it, so a rename or delete from
       # Nextcloud would break seeding. The kernel enforces it here; the
       # mount's `readonly` option in Nextcloud (occ files_external:option)

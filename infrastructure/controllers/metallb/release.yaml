@@ -17,9 +17,9 @@ spec:
   upgrade:
     crds: CreateReplace
   # The status cleaner runs on the host's network with a fixed port, so on one node a
-  # rolling update's new pod waits for ever for the old one's port (0.16.2's upgrade
-  # did, 2026-11-16). No surge stops the old pod first. Not Recreate: Helm applies
-  # server-side and keeps the live rollingUpdate, which Recreate refuses.
+  # rolling update's new pod waits for ever for the old one's port. No surge stops
+  # the old pod first. Not Recreate: Helm applies server-side and keeps the live
+  # rollingUpdate, which Recreate refuses.
   postRenderers:
     - kustomize:
         patches:

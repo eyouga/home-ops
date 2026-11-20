@@ -1,4 +1,4 @@
-# Same pool as the old TrueNAS cluster; outside the router's DHCP range.
+# Outside the router's DHCP range.
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:

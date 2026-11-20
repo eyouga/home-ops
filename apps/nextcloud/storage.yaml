@@ -2,10 +2,10 @@
 # disko-config.nix), as static PVs like the other apps' (Pod Security
 # `restricted`, type: Directory so a pod waits for tank instead of writing
 # into the wiped root, Retain). `data` is Nextcloud's datadirectory
-# (/var/www/html/data, 568:568 770 as on TrueNAS). `tank-data` is the one
+# (/var/www/html/data, 568:568 770). `tank-data` is the one
 # torrents + media dataset (/srv/data); release.yaml mounts only its
-# torrents/, read-only at the old path, behind the External Storage mount
-# "Torrents" (/torrents). The capacity is a label; nothing enforces it.
+# torrents/, read-only at /torrents, where the External Storage mount
+# "Torrents" points. The capacity is a label; nothing enforces it.
 ---
 apiVersion: v1
 kind: PersistentVolume

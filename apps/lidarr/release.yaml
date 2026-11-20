@@ -1,14 +1,9 @@
-# Lidarr, restored at the old server's 2.3.3 (Phase 5, on linuxserver's
-# build with s6 bypassed: the old onedr0p image no longer pulls), then moved
-# straight to current on home-operations' image (Phase 6; its SQLite
-# migrates forward on start). home-operations builds from the develop
-# channel: pin only builds whose commit is an upstream stable release
-# (3.1.6.5078 = stable 3.1.6.5079). Config from the
-# rescued /mnt/Bim/apps/lidarr/config; uid 568 like on TrueNAS, so the
-# restored files need no chown. Since the one-dataset
-# move (Phase 6, 2026-11-02) torrents and the library share one /data volume
-# (data/torrents/<category>, data/media/music), so imports are hardlinks; the
-# root folder and every path in the database were moved there by API.
+# Lidarr. Its SQLite migrates forward on start.
+# home-operations builds from the develop channel: pin only builds whose
+# commit is an upstream stable release (its build number can sit a few below
+# upstream's).
+# uid 568 owns its config. Torrents and the library share one /data volume
+# (data/torrents/<category>, data/media/music), so imports are hardlinks.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
