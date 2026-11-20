@@ -3,8 +3,11 @@
 # load through the kube-prometheus-stack sidecar: the sidecar doesn't resolve
 # grafana.com's import inputs (${DS_PROMETHEUS}), so every dashboard gets a
 # `datasource` variable defaulting to the chart's Prometheus (uid prometheus).
-# To bump one, change its revision here, re-run, and read the diff.
+# Renovate moves the revisions; scripts/ci/dashboards.sh stays red until this is
+# re-run and its output committed: read that diff. Writes next to itself, or
+# into $1.
 set -euo pipefail
+out=$(realpath "${1:-$(dirname "$0")}")
 cd "$(dirname "$0")"
 
 # smartctl_exporter and node-exporter ship no dashboards; these are the most
@@ -29,9 +32,9 @@ common='
 
 fetch() { curl -fsSL "$1"; }
 
-fetch "$SMARTCTL" | jq "$common" >smartctl.json
-fetch "$DCGM" | jq "$common" >dcgm.json
+fetch "$SMARTCTL" | jq "$common" >"$out/smartctl.json"
+fetch "$DCGM" | jq "$common" >"$out/dcgm.json"
 # Its SMART panels find smartctl series by node-exporter's host IP
 # (instance=~"192.168.1.80(:port)?"), which is why smartctl-exporter's
 # instance is relabelled to <host IP>:<port>.
-fetch "$ZFS" | jq "$common" >zfs.json
+fetch "$ZFS" | jq "$common" >"$out/zfs.json"
