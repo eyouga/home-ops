@@ -8,7 +8,7 @@ rendered=${1:?directory build.sh wrote to}
 
 # Core Kubernetes at kube_version (lib.sh), from a pinned commit.
 # renovate: datasource=git-refs depName=https://github.com/yannh/kubernetes-json-schema currentValue=master
-core_rev=88b0235585da4efb0e4bc6cc00baccf0e327e54d
+core_rev=0c4dd99d9873f7b4c2da24c008476f5841adbe2d
 # Flux's schemas at the version running here.
 flux_version=$(sed -nE 's/^# Flux Version: (v.+)$/\1/p' clusters/def-jam/flux-system/gotk-components.yaml)
 # Every other CRD (cert-manager, CNPG, Gateway API, MetalLB, Prometheus Operator, Traefik).
