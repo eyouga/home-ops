@@ -13,7 +13,7 @@ core_rev=88b0235585da4efb0e4bc6cc00baccf0e327e54d
 flux_version=$(sed -nE 's/^# Flux Version: (v.+)$/\1/p' clusters/def-jam/flux-system/gotk-components.yaml)
 # Every other CRD (cert-manager, CNPG, Gateway API, MetalLB, Prometheus Operator, Traefik).
 # renovate: datasource=git-refs depName=https://github.com/datreeio/CRDs-catalog currentValue=main
-catalog_rev=c86448cbf1a840ca62d119259864863897c8748a
+catalog_rev=784ec895547a36e548e6810b41f27baade3a0890
 
 schemas=$(mktemp -d)
 trap 'rm -rf "$schemas"' EXIT
