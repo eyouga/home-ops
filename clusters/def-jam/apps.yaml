@@ -8,7 +8,10 @@ spec:
     - name: infra-configs
   interval: 1h
   retryInterval: 1m
-  timeout: 5m
+  # wait: true checks every app's health within this, so it outlasts the longest
+  # HelmRelease timeout (Jellyfin's and Nextcloud's 35m): a slow migration is
+  # still in progress, not a failure. scripts/ci/shape.sh checks it.
+  timeout: 40m
   sourceRef:
     kind: GitRepository
     name: flux-system
