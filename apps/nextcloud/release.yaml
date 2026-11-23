@@ -49,7 +49,7 @@ spec:
           app:
             image: &image
               repository: docker.io/library/nextcloud
-              tag: 35.0.3-fpm@sha256:eaf746a8ad73b8eda91704de8d51b68d93aa2e778bcb96ee81df720abd2f076a
+              tag: 35.0.3-fpm@sha256:5db92d6956be3b86cee099f88149189bcbf6f45b818b910b84e748c99de2840b
             env: &env
               TZ: Europe/Paris
               # Used by the image's nextcloud.ini.
