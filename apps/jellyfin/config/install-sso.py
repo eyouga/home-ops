@@ -12,7 +12,7 @@ import time
 import urllib.request
 import zipfile
 
-VERSION = "6.1.0.0"
+VERSION = "6.4.0.0"
 SHA256 = "6311d6b16e89a91e44ce9b5a32c09d28eda292a11b75cd6b942d7bc62664cd00"
 URL = f"https://github.com/MaxRink/jellyfin-plugin-sso/releases/download/v{VERSION}/sso-auth_{VERSION}.zip"
 TARGET = f"/config/plugins/SSO-Auth_{VERSION}"
