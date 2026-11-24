@@ -41,7 +41,7 @@ spec:
           app:
             image:
               repository: codeberg.org/forgejo/forgejo
-              tag: 15.0.11-rootless@sha256:3cd6bc2b74c87cbde0a0fd527c9665cb416f5a0540dee54fe5afb3fa2df9f40c
+              tag: 17.0.2-rootless@sha256:39362ab93a94c0c9b8b330d2a877ddbb3f02fa8c0cba1b8d686d437b39f36a04
             env:
               TZ: Europe/Paris
               GITEA_WORK_DIR: /data
