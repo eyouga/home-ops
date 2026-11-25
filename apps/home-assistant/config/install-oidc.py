@@ -8,7 +8,7 @@ import time
 import urllib.request
 import zipfile
 
-VERSION = "1.2.1"
+VERSION = "1.3.0"
 SHA256 = "e5badaaacaa63cfd6fe733924a05e76d75058836190398598fb24de57cd47ccd"
 URL = f"https://github.com/christiaangoossens/hass-oidc-auth/releases/download/v{VERSION}/hass-oidc-auth.zip"
 TARGET = "/config/custom_components/auth_oidc"
