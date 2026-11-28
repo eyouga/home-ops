@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Every app has the same shape (docs/architecture.md), as far as kube-linter
 # (kube-lint.sh) can't see it: its files in one order, a restricted namespace
-# that denies by default, a Helm timeout longer than its startup probe allows,
-# and its generated ConfigMap named <app>-files. An app that differs says why on
+# that denies by default, a Helm timeout longer than its startup probe allows and
+# shorter than the apps layer waits for it, and its generated ConfigMap named
+# <app>-files. An app that differs says why on
 # a `# shape: <rule>: <why>` line in its directory; an exception that isn't
 # needed any more fails too.
 source "$(dirname "$0")/lib.sh"
@@ -33,6 +34,9 @@ seconds() { # <Go duration> as Helm reads it: 15m, 1h, 90s
   done
   echo "$total"
 }
+
+# The apps layer (wait: true) gives up on an app's health after this.
+layer=$(seconds "$(yq '.spec.timeout // "5m"' clusters/def-jam/apps.yaml)")
 
 for dir in apps/*/; do
   app=$(basename "$dir")
@@ -67,6 +71,7 @@ for dir in apps/*/; do
     | (.initialDelaySeconds // 0) + (.periodSeconds // 10) * (.failureThreshold // 3)] | .[]' "$out/helm-${ns}_$app.yaml" | sort -n | tail -1)
   allowance=${allowance:-0}
   check timeout "$([ "$timeout" -gt "$allowance" ] && echo true || echo false)" "Helm's timeout (${timeout}s) isn't longer than the startup probe allows (${allowance}s)"
+  check layer-timeout "$([ "$layer" -gt "$timeout" ] && echo true || echo false)" "Helm's timeout (${timeout}s) isn't shorter than the apps layer's (${layer}s, clusters/def-jam/apps.yaml)"
 
   names=$(yq '.configMapGenerator[].name' "$dir/kustomization.yaml")
   check files-name "$([ -z "$names" ] || [ "$names" = "$app-files" ] && echo true || echo false)" "its generated ConfigMap is $names, not $app-files"
